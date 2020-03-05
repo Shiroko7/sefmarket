@@ -216,9 +216,7 @@ def tenor_sort_2(df):
 
 #conectarse a la base de datos
 #cambiar esto por un log in con input de usuario
-print(os.environ['DATABASE_URL'])
-DATABASE_URL = os.environ['DATABASE_URL']
-database = create_engine(DATABASE_URL)#('postgresql://postgres:1234@localhost/test')  
+database = create_engine('postgres://pyyaxqhbgdrmnl:1473a2885ea9a1b3caf5305cef587aff5a652a9c4c7b7e99b6241c34dd5ffd7b@ec2-3-230-106-126.compute-1.amazonaws.com:5432/dabap8cbpp5m6s')
 base = declarative_base()
 
 Session = sessionmaker(database)  
