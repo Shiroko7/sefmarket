@@ -216,7 +216,8 @@ def tenor_sort_2(df):
 
 #conectarse a la base de datos
 #cambiar esto por un log in con input de usuario
-database = create_engine('postgresql://postgres:1234@localhost/test')  
+DATABASE_URL = os.environ['DATABASE_URL']
+database = create_engine(DATABASE_URL)#('postgresql://postgres:1234@localhost/test')  
 base = declarative_base()
 
 Session = sessionmaker(database)  
@@ -263,20 +264,7 @@ class BASIS(base):
 
 
 
-#OPERCIONES QUE MODIFICAN LA BD
-
-#delete rows by date 
-def delete_by_date(fecha):
-
-    input_rows = session.query(NDF_USD_CLP).filter(NDF_USD_CLP.Date == fecha).delete()
-
-    input_rows = session.query(CLP_CAM).filter(CLP_CAM.Date == fecha).delete()
-
-    input_rows = session.query(CLF_CAM).filter(CLF_CAM.Date == fecha).delete()
-
-    input_rows = session.query(BASIS).filter(BASIS.Date == fecha).delete()
-    
-    session.commit()
+#OPERCIONES QUE MODIFICAN LA B
             
 
 
