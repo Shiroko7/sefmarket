@@ -216,6 +216,7 @@ def tenor_sort_2(df):
 
 #conectarse a la base de datos
 #cambiar esto por un log in con input de usuario
+print(os.environ['DATABASE_URL'])
 DATABASE_URL = os.environ['DATABASE_URL']
 database = create_engine(DATABASE_URL)#('postgresql://postgres:1234@localhost/test')  
 base = declarative_base()
