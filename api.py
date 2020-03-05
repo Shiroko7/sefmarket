@@ -399,20 +399,19 @@ def absolute_diff(df1,df2):
     df1['Volume'] = df1['Volume']* -1
     return df
 
-def fill_df(df,start_date,end_date,fill_broker = True):
+def fill_df(df,start_date,end_date):
     #FILL DIAS QUE DEONDE NO SE TRADEA
     business_days = pd.date_range(start=start_date, end=end_date, freq='B')
     cols = list(df.columns.values)
     tenors = df['Tenor'].unique()
 
-    if not fill_broker and 'Broker' in cols:
+    if 'Broker' in cols:
         brokers = df['Broker'].unique()
         for broker in brokers:
             for tenor in tenors:
                 days_traded = df[(df['Tenor'] == tenor) & (df['Broker'] == broker)]['Date'].unique()
                 fills = set(business_days.date)-set(days_traded)
                 if len(fills) != 0:
-                    fills = pd.to_datetime(list(fills))
                     fill = [{**{key:0 for key in cols},**{'Broker':broker,'Tenor':tenor,'Date':i}} for i in fills]
                     df_fill = pd.DataFrame(fill,columns = cols)
                     df = df.append(df_fill,ignore_index=True,verify_integrity=False)
@@ -422,8 +421,7 @@ def fill_df(df,start_date,end_date,fill_broker = True):
             days_traded = df[df['Tenor']==tenor]['Date'].unique()
             fills = set(business_days.date)-set(days_traded)
             if len(fills) != 0:
-                fills = pd.to_datetime(list(fills))
-                fill = [{**{key:0 for key in cols},**{'Tenor':tenor,'Date':i}} for i in fills]
+                fill = [{**{key:0 for key in cols},**{'Broker':'','Tenor':tenor,'Date':i}} for i in fills]
                 df_fill = pd.DataFrame(fill,columns = cols)
                 df = df.append(df_fill,ignore_index=True,verify_integrity=False)
     return df
@@ -528,7 +526,7 @@ def informe_v1(producto,start_date,period,usd,uf=1):
     
     #date to datetime
     historic_df = historic_df.reset_index(drop=True)
-    historic_df.Date = pd.to_datetime(historic_df.Date.fillna(pd.NaT),errors='coerce')
+    historic_df.Date = pd.to_datetime(historic_df.Date)
     
     #sacar volumen de DV01 periodical
     if period == 'DAILY':
@@ -547,14 +545,15 @@ def informe_v1(producto,start_date,period,usd,uf=1):
 
     #calcular histric values
     historic_trades = historic_df['Date'].nunique()
-    
+
+    #date to datetime
+    historic_df = historic_df.reset_index(drop=True)
+    historic_df['Date'] = pd.to_datetime(historic_df['Date'])
+
     #hacer un BIG FILL
     historic_df = fill_df(historic_df,start_date,today)
     
-    #date to datetime
-    
-    historic_df = historic_df.reset_index(drop=True)
-    historic_df['Date'] = pd.to_datetime(historic_df['Date'].fillna(pd.NaT),errors='coerce')
+
 
     if period == 'DAILY':
         historic_mean = historic_df.groupby('Date').agg({'Volume':'sum'}).reset_index()['Volume'].mean()
@@ -687,7 +686,7 @@ def informe_ndf(start_date, period):
     
     #date to datetime
     historic_df = historic_df.reset_index(drop=True)
-    historic_df.Date = pd.to_datetime(historic_df.Date.fillna(pd.NaT),errors='coerce')
+    historic_df.Date = pd.to_datetime(historic_df.Date)
     
     #sacar volumen de DV01 periodical
     if period == 'DAILY':
@@ -705,14 +704,14 @@ def informe_ndf(start_date, period):
     
     #calcular histric values
     historic_trades = historic_df['Date'].nunique()
-    
+
+    #date to datetime
+    historic_df = historic_df.reset_index(drop=True)
+    historic_df['Date'] = pd.to_datetime(historic_df['Date'])
+
     #hacer un BIG FILL
     historic_df = fill_df(historic_df,start_date,today)
     
-    #date to datetime
-    historic_df = historic_df.reset_index(drop=True)
-    historic_df['Date'] = pd.to_datetime(historic_df['Date'].fillna(pd.NaT),errors='coerce')
-
     if period == 'DAILY':
         historic_mean = historic_df.groupby('Date').agg({'Volume':'sum'}).reset_index()['Volume'].mean()
     
@@ -848,18 +847,14 @@ def get_historic(producto,start_date,today,period,tenor_range=None,usd=1,uf=1,du
         df = volume_to_dv01(df,usd,uf,duration,l)
     else:
         df['Volume'] = df['Volume']*l
-    #end = datetime.now()
-    #print("dv01 time: ", (end-start).seconds)
-        
-    #start = datetime.now()
-    df = fill_df(df,start_date,today)
-    #end = datetime.now()
-    #print("fill_df time: ", (end-start).seconds)
-    
+
     #date to datetime
     df = df.reset_index(drop=True)
-    df['Date'] = pd.to_datetime(df['Date'].fillna(pd.NaT),errors='coerce')
+    df['Date'] = pd.to_datetime(df['Date'])
+    df = fill_df(df,start_date,today)
+
     
+
     if period == 'DAILY':
         df = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
     elif period == 'WEEKLY':
@@ -875,6 +870,8 @@ def get_specific(producto,start_date,today,period,tenor_range=None,usd=1,uf=1,du
         period_df = query_by_date(producto,today)
         if period_df.empty:
             period_df = pd.DataFrame([['0Y',0,today]],columns = ['Tenor','Volume','Date'])
+        period_df = period_df.reset_index(drop=True)
+        period_df['Date'] = pd.to_datetime(period_df['Date'])
         period_df = fill_df(period_df,today,today)
 
     elif period == 'WEEKLY':
@@ -889,6 +886,8 @@ def get_specific(producto,start_date,today,period,tenor_range=None,usd=1,uf=1,du
         period_df = query_by_daterange(producto,offset_days,today)
         if period_df.empty:
             period_df = pd.DataFrame([['0Y',0,today]],columns = ['Tenor','Volume','Date'])
+        period_df = period_df.reset_index(drop=True)
+        period_df['Date'] = pd.to_datetime(period_df['Date'])
         period_df = fill_df(period_df,offset_days,today)
 
     elif period == 'MONTHLY':
@@ -897,6 +896,8 @@ def get_specific(producto,start_date,today,period,tenor_range=None,usd=1,uf=1,du
         period_df = query_by_daterange(producto,offset_days,today)
         if period_df.empty:
             period_df = pd.DataFrame([['0Y',0,today]],columns = ['Tenor','Volume','Date'])
+        period_df = period_df.reset_index(drop=True)
+        period_df['Date'] = pd.to_datetime(period_df['Date'])
         period_df = fill_df(period_df,offset_days,today)
         
     #usar tenors en rango
@@ -909,8 +910,7 @@ def get_specific(producto,start_date,today,period,tenor_range=None,usd=1,uf=1,du
         period_df = volume_to_dv01(period_df,usd,uf,duration,l)
     else:
         period_df['Volume'] = period_df['Volume']*l
-    period_df = period_df.reset_index(drop=True)
-    period_df['Date'] = pd.to_datetime(period_df['Date'].fillna(pd.NaT),errors='coerce')
+
     return period_df
 
 
@@ -1037,12 +1037,15 @@ def general_graph(producto, tenor, start_date,period,usd=770, uf=1, cumulative =
         today = today - timedelta(days=today.weekday()) - timedelta(days=3)
 
     df = daily_change(producto, start_date, today)
+    #date to datetime
+
+    df = df.reset_index(drop=True)
+    a = pd.to_datetime(df['Date'])
     #hacer un BIG FILL
     df = fill_df(df,start_date,today)
     
-    #date to datetime
-    df = df.reset_index(drop=True)
-    df['Date'] = pd.to_datetime(df['Date'].fillna(pd.NaT),errors='coerce')
+    
+    df['Date'] = a
     if period == 'DAILY':
         df = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
     elif period == 'WEEKLY':
@@ -1248,10 +1251,12 @@ def participation_graph_by_date(producto, start_date,tenor_range=None,usd=770, u
         #pasar a DV01
         df = volume_to_dv01(df,usd,uf,duration,l)
         df = df.rename(columns = {'Volume':'DV01'})
-        
-        df = fill_df(df,start_date,today,False)
+
         df = df.reset_index(drop=True)
-        df['Date'] = pd.to_datetime(df['Date'].fillna(pd.NaT),errors='coerce')
+        df['Date'] = pd.to_datetime(df['Date'])
+
+        df = fill_df(df,start_date,today)
+
         #Agregar total
         
         brokers = df['Broker'].unique()
@@ -1294,9 +1299,12 @@ def participation_graph_by_date(producto, start_date,tenor_range=None,usd=770, u
                       yaxis={'title':'DV01'})
     else:
         #agrupar por broker
-        df = fill_df(df,start_date,today,False)
         df = df.reset_index(drop=True)
-        df['Date'] = pd.to_datetime(df['Date'].fillna(pd.NaT),errors='coerce')
+        df['Date'] =  pd.to_datetime(df['Date'])
+        
+        df = fill_df(df,start_date,today)
+        #print(df.info())
+
         df = df.groupby(['Broker','Date']).agg({'Volume': 'sum'}).reset_index()
         df['Volume']=df['Volume']*l        
 

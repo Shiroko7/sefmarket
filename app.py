@@ -22,6 +22,16 @@ today = today - shift
 options = [str(i)+'D' for i in range(0,30)] + [str(i)+'M' for i in range(1,13)] +  [str(i)+'Y' for i in range(1,31)]
 a = {i:options[i] for i in range(len(options))}
 
+
+#df = api.query_by_daterange('BASIS', date(2020,1,3),today)
+#df = api.fill_df(df,date(2020,1,3),today)
+#df = df.reset_index(drop=True)
+#print(df.info())
+#df['Date'] = pd.to_datetime(df['Date']) 
+#print(pd.to_datetime(df['Date']))
+
+
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -35,7 +45,7 @@ app.layout = html.Div(children=
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H4('Versión Alpha 1.0.0',),
+                        html.H4('Versión Alpha 1.0.1',),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
