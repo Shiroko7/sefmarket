@@ -38,6 +38,7 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 server = app.server
 
+
 app.layout = html.Div(children=
     [
         html.Div(
@@ -87,56 +88,63 @@ app.layout = html.Div(children=
                                 ],
                                 value=date(2020,1,3),             
                             ),
+                        ], className = "pretty_container"),
+                    html.Div(
+                        [
                             html.Div(
                                 [
-                                    html.Div(
-                                        [
-                                            html.Label('USD',className="control_label"),
-                                            dcc.Input(id='usd', value='800', type='number', className = "dcc_control"),
-                                        ],className='six columns',style={'margin-right':'5px','width':'49%'},
-                                    ),
-                                    html.Div(
-                                        [
-                                            html.Label('UF',className="control_label"),
-                                            dcc.Input(id='uf', value='28000', type='number', className = "dcc_control"),
-                                        ],className='six columns',style={'margin-left':'5px','width':'49%'},
-                                    )
-                                ], className = 'row'
+                                    html.Label('USD',className="control_label"),
+                                    dcc.Input(id='usd', value='800', type='number', className = "dcc_control"),
+                                ],
                             ),
-                        ], className = "pretty_container"),
-                    dash_table.DataTable(
-                        id='table',
-                        style_header={
-                            'fontWeight': 'bold',
-                            'textAlign': 'center'
-                        },
-                        style_cell_conditional=[
-                            {
-                                'if': {'column_id': 'Tenor'},
-                                'textAlign': 'left'
-                            }
-                        ],
-                        style_data_conditional=[
-                            {
-                                'if': {'row_index': 'odd'},
-                                'backgroundColor': 'rgb(251, 251, 251)'
-                            },
-                            {
-                                'if': {
-                                    'column_id': 'SD',
-                                    'filter_query': '{SD} > 0.0'
-                                },
-                                'color': 'green',
-                            },
-                            {
-                                'if': {
-                                    'column_id': 'SD',
-                                    'filter_query': '{SD} < 0.0'
-                                },
-                                'color': 'red',
-                            },
-                        ]
+                            html.Div(
+                                [
+                                    html.Label('UF',className="control_label"),
+                                    dcc.Input(id='uf', value='28000', type='number', className = "dcc_control"),
+                                ],
+                            )
+                        ], className = 'pretty_container',#style={'columnCount': 2,'overflowX': 'scroll'}
                     ),
+                   # html.Div(
+                    #    [
+                    dash_table.DataTable(
+                            id='table',
+                            style_table = {
+                                'box-sizing': 'border-box',
+                                'overflowX': 'scroll'
+                            },
+                            style_header={
+                                'fontWeight': 'bold',
+                                'textAlign': 'center'
+                            },
+                            style_cell_conditional=[
+                                {
+                                    'if': {'column_id': 'Tenor'},
+                                    'textAlign': 'left'
+                                }
+                            ],
+                            style_data_conditional=[
+                                {
+                                    'if': {'row_index': 'odd'},
+                                    'backgroundColor': 'rgb(251, 251, 251)'
+                                },
+                                {
+                                    'if': {
+                                        'column_id': 'SD',
+                                        'filter_query': '{SD} > 0.0'
+                                    },
+                                    'color': 'green',
+                                },
+                                {
+                                    'if': {
+                                        'column_id': 'SD',
+                                        'filter_query': '{SD} < 0.0'
+                                    },
+                                    'color': 'red',
+                                },
+                            ]
+                        ),
+                       # ],className="pretty_container"#style = {'display':'inline-block'}
                 ],className="four columns"
             ),
 
@@ -233,7 +241,8 @@ app.layout = html.Div(children=
             className='row'
         ),
 
-])
+],id="mainContainer",style={"display": "flex","flex-direction": "column"}
+)
  
 
 
