@@ -93,13 +93,13 @@ app.layout = html.Div(children=
                                         [
                                             html.Label('USD',className="control_label"),
                                             dcc.Input(id='usd', value='800', type='number', className = "dcc_control"),
-                                        ],style={"width":"49%"}
+                                        ],className='six columns',style={'margin-right':'5px','width':'49%'},
                                     ),
                                     html.Div(
                                         [
                                             html.Label('UF',className="control_label"),
                                             dcc.Input(id='uf', value='28000', type='number', className = "dcc_control"),
-                                        ],style={"width":"49%"}
+                                        ],className='six columns',style={'margin-left':'5px','width':'49%'},
                                     )
                                 ], className = 'row'
                             ),

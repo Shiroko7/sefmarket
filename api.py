@@ -855,8 +855,6 @@ def get_historic(producto,start_date,today,period,tenor_range=None,usd=1,uf=1,du
     df['Date'] = pd.to_datetime(df['Date'])
     df = fill_df(df,start_date,today)
 
-    
-
     if period == 'DAILY':
         df = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
     elif period == 'WEEKLY':
