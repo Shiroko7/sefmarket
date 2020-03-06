@@ -45,7 +45,7 @@ app.layout = html.Div(children=
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H4('Versión Alpha 1.0.1',),
+                        html.H6('Versión Alpha 1.0.2',),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
@@ -165,7 +165,7 @@ app.layout = html.Div(children=
                             ],
                             className="dcc_control"
                         ),
-                        dcc.Graph(id='fig_1'),
+                        dcc.Loading(id = "loading-icon-1", children=[html.Div(dcc.Graph(id='fig_1'))], type="circle")
                     ],
                     className="pretty_container"),
                     
@@ -178,7 +178,7 @@ app.layout = html.Div(children=
                             ],
                             className="dcc_control"
                         ),
-                        dcc.Graph(id='fig_2')
+                        dcc.Loading(id = "loading-icon-2", children=[html.Div(dcc.Graph(id='fig_2'))], type="circle")
                     ],
                     className="pretty_container")
                 ],className="eight columns")
@@ -202,7 +202,7 @@ app.layout = html.Div(children=
                             value=[0,71],
                             allowCross=False
                         ),
-                    dcc.Graph(id='fig_3')
+                    dcc.Loading(id = "loading-icon-3", children=[html.Div(dcc.Graph(id='fig_3'))], type="circle")
                 ],className="pretty_container five columns"),
                 html.Div(
                 [
@@ -226,13 +226,22 @@ app.layout = html.Div(children=
                             value=[0,71],
                             allowCross=False
                         ),
-                    dcc.Graph(id='fig_4')
+                    dcc.Loading(id = "loading-icon-4", children=[html.Div(dcc.Graph(id='fig_4'))], type="circle")
                 ],className="pretty_container seven columns"),
 
             ],
             className='row'
-        )
+        ),
+
 ])
+ 
+
+
+@app.callback(Output("loading-icon-1", "children"))
+@app.callback(Output("loading-icon-2", "children"))
+@app.callback(Output("loading-icon-3", "children"))
+@app.callback(Output("loading-icon-4", "children"))
+
 
 @app.callback(
     Output('tenor_slider_output_1', 'children'),

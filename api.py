@@ -414,6 +414,7 @@ def fill_df(df,start_date,end_date):
                 if len(fills) != 0:
                     fill = [{**{key:0 for key in cols},**{'Broker':broker,'Tenor':tenor,'Date':i}} for i in fills]
                     df_fill = pd.DataFrame(fill,columns = cols)
+                    df_fill['Date'] = pd.to_datetime(df_fill['Date'])
                     df = df.append(df_fill,ignore_index=True,verify_integrity=False)
     else:
         time_fill = timedelta(seconds=0)
@@ -423,6 +424,7 @@ def fill_df(df,start_date,end_date):
             if len(fills) != 0:
                 fill = [{**{key:0 for key in cols},**{'Broker':'','Tenor':tenor,'Date':i}} for i in fills]
                 df_fill = pd.DataFrame(fill,columns = cols)
+                df_fill['Date'] = pd.to_datetime(df_fill['Date'])
                 df = df.append(df_fill,ignore_index=True,verify_integrity=False)
     return df
 
