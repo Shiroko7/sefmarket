@@ -1040,12 +1040,10 @@ def general_graph(producto, tenor, start_date,period,usd=770, uf=1, cumulative =
     #date to datetime
 
     df = df.reset_index(drop=True)
-    a = pd.to_datetime(df['Date'])
+    df['Date'] = pd.to_datetime(df['Date'])
     #hacer un BIG FILL
     df = fill_df(df,start_date,today)
     
-    
-    df['Date'] = a
     if period == 'DAILY':
         df = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
     elif period == 'WEEKLY':
