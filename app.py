@@ -3,7 +3,6 @@
 import dash
 import dash_table
 import dash_core_components as dcc
-import dash_bootstrap_components as dbc
 import dash_html_components as html
 #mport dash_dangerously_set_inner_html
 from dash.dependencies import Input, Output, State
@@ -24,262 +23,203 @@ options = [str(i)+'D' for i in range(0,30)] + [str(i)+'M' for i in range(1,13)] 
 a = {i:options[i] for i in range(len(options))}
 
 
-#df = api.query_by_daterange('BASIS', date(2020,1,3),today)
-#df = api.fill_df(df,date(2020,1,3),today)
-#df = df.reset_index(drop=True)
-#print(df.info())
-#df['Date'] = pd.to_datetime(df['Date']) 
-#print(pd.to_datetime(df['Date']))
-
-
-
-external_stylesheets = [dbc.themes.BOOTSTRAP]
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__)
 server = app.server
 
-navbar = dbc.NavbarSimple(
-    children=[
-        dbc.NavItem(dbc.NavLink("Link", href="#")),
-        dbc.DropdownMenu(
-            nav=True,
-            in_navbar=True,
-            label="Menu",
-            children=[
-                dbc.DropdownMenuItem("Entry 1"),
-                dbc.DropdownMenuItem("Entry 2"),
-                dbc.DropdownMenuItem(divider=True),
-                dbc.DropdownMenuItem("Entry 3"),
-            ],
-        ),
-    ],
-    brand="Demo",
-    brand_href="#",
-    sticky="top",
-)
 
-body = dbc.Container(
+app.layout = html.Div(children=
     [
-        dbc.Row(
+        html.Div(
             [
-                dbc.Col(
+                html.Div(
                     [
-                        html.H1('SEF Market Data Activity',),
-                        html.H4('Versión Alpha 1.1.0',),
-                    ],style = {'text-align': 'center'}
+                        html.H2('SEF Market Data Activity',),
+                        html.H6('Versión Alpha 1.1.1',),
+                    ],className='twelve columns',style = {'text-align': 'center'}
                 )
-            ]
+            ],id='header',className='row',
         ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        html.Div(
-                            [
-                                html.Label('Producto',className="control_label"),
-                                dcc.Dropdown(
-                                    id='producto',
-                                    options=[
-                                        {'label': 'NDF USD-CLP', 'value': 'NDF_USD_CLP'},
-                                        {'label': 'CLP CAMARA', 'value': 'CLP_CAM'},
-                                        {'label': 'UF CAMARA', 'value': 'CLF_CAM'},
-                                        {'label': 'BASIS SWAP', 'value': 'BASIS'}
-                                    ],
-                                    value='CLP_CAM',             
-                                ),                        
-                                html.Label('Periodo',className="control_label"),
-                                dcc.Dropdown(
-                                    id='periodo',
-                                    options=[
-                                        {'label': 'Diario', 'value': 'DAILY'},
-                                        {'label': 'Semanal', 'value': 'WEEKLY'},
-                                        #{'label': 'Mensual', 'value': 'MONTHLY'},
-                                    ],
-                                    value='DAILY',             
-                                ),
-                                html.Label('Fecha de inicio',className="control_label"),
-                                dcc.Dropdown(
-                                    id='fecha',
-                                    options=[
-                                        {'label': 'Desde 01 Enero', 'value': date(2020,1,3)},
-                                        {'label': '1 Semana', 'value': today-timedelta(days=7)},
-                                        {'label': '1 Mes', 'value': today-timedelta(days=30)},
-                                    ],
-                                    value=date(2020,1,3),             
-                                ),
-                            ], className = "pretty_container"),
-                        dbc.Row(
-                            [           dbc.Col(
-                                            [
-                                                html.Label('USD',className="control_label"),
-                                            ]
-                                        ),
-                                        
-                                        dbc.Col(
-                                            [
-                                                
-                                                dcc.Input(id='usd', value='800', type='number', className = "dcc_control",style={'text-align': 'right'}),
-                                            ],className='col'
-                                        ),
-                                        dbc.Col(
-                                            [
-                                                html.Label('UF',className="control_label"),
-                                            ]
-                                        ),
-                                        dbc.Col(
-                                            [
-                                                
-                                                dcc.Input(id='uf', value='28000', type='number', className = "dcc_control",style={'text-align': 'right'}),
-                                            ],className='col'
-                                        )
-                            ], className = 'pretty_container',#style={'columnCount': 2,'overflowX': 'scroll'}
-                        ),
-
-                        dash_table.DataTable(
-                                id='table',
-                                style_table = {
-                                    'box-sizing': 'border-box',
-                                    #'overflowX': 'scroll'
-                                },
-                                style_header={
-                                    'fontWeight': 'bold',
-                                    'textAlign': 'center',
-                                },
-                                style_cell_conditional=[
-                                    {
-                                        'if': {'column_id': 'Tenor'},
-                                        'textAlign': 'left'
-                                    }
-                                ],
-                                style_data_conditional=[
-                                    {
-                                        'if': {'row_index': 'odd'},
-                                        'backgroundColor': 'rgb(251, 251, 251)'
-                                    },
-                                    {
-                                        'if': {
-                                            'column_id': 'SD',
-                                            'filter_query': '{SD} > 0.0'
-                                        },
-                                        'color': 'green',
-                                    },
-                                    {
-                                        'if': {
-                                            'column_id': 'SD',
-                                            'filter_query': '{SD} < 0.0'
-                                        },
-                                        'color': 'red',
-                                    },
-                                ]
-                            ),
-                    ],className='col-4'
-                    ),
-                dbc.Col(
-                    [
-                        html.Div(
-                            [
-                            html.Div(
-                                [
-                                    html.P(
-                                        children = 'Filtrar por rango de tenors:',
-                                        #className="control_label",
-                                        id = 'tenor_slider_output_1',
-                                    ),
-
-                                    dcc.RangeSlider(
-                                        id='tenor_slider_1',
-                                        #className="dcc_control",
-                                        min=0,
-                                        max=71,
-                                        value=[0,71],
-                                        allowCross=False
-                                    ),
-                                    dcc.Checklist(
-                                        id='show_total',
-                                        options=[
-                                            {'label': ' Mostrar total', 'value': 'True'}
-                                        ],
-                                        className="dcc_control"
-                                    ),
-                                    dcc.Loading(id = "loading-icon-1", children=[html.Div(dcc.Graph(id='fig_1'))], type="circle")
-                                ], className="pretty_container"
-                                ),
-                                
-                            html.Div(
-                                [
-                                    dcc.Checklist(
-                                        id='cumulative_2',
-                                        options=[
-                                            {'label': ' Mostrar acumulado', 'value': 'True'}
-                                        ],
-                                        className="dcc_control"
-                                    ),
-                                    dcc.Loading(id = "loading-icon-2", children=[html.Div(dcc.Graph(id='fig_2'))], type="circle")
-                                ],className="pretty_container"
-                                )
-                            ],)
-                    ],className="col-8"
-                ),
-            ]
-        ),
- 
-        dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        html.Div(
+        html.Div(
+        [
+            html.Div(
+                [
+                    html.Div(
                         [
-                            html.P(
-                                children = 'Filtrar por rango de tenors:',
-                                #className="control_label",
-                                id = 'tenor_slider_output_3',
+                            html.Label('Producto',className="control_label"),
+                            dcc.Dropdown(
+                                id='producto',
+                                options=[
+                                    {'label': 'NDF USD-CLP', 'value': 'NDF_USD_CLP'},
+                                    {'label': 'CLP CAMARA', 'value': 'CLP_CAM'},
+                                    {'label': 'UF CAMARA', 'value': 'CLF_CAM'},
+                                    {'label': 'BASIS SWAP', 'value': 'BASIS'}
+                                ],
+                                value='CLP_CAM',             
+                            ),                        
+                            html.Label('Periodo',className="control_label"),
+                            dcc.Dropdown(
+                                id='periodo',
+                                options=[
+                                    {'label': 'Diario', 'value': 'DAILY'},
+                                    {'label': 'Semanal', 'value': 'WEEKLY'},
+                                    #{'label': 'Mensual', 'value': 'MONTHLY'},
+                                ],
+                                value='DAILY',             
+                            ),
+                            html.Label('Fecha de inicio',className="control_label"),
+                            dcc.Dropdown(
+                                id='fecha',
+                                options=[
+                                    {'label': 'Desde 01 Enero', 'value': date(2020,1,3)},
+                                    {'label': '1 Semana', 'value': today-timedelta(days=7)},
+                                    {'label': '1 Mes', 'value': today-timedelta(days=30)},
+                                ],
+                                value=date(2020,1,3),             
                             ),
 
-                            dcc.RangeSlider(
-                                id='tenor_slider_3',
-                                #className="dcc_control",
-                                min=0,
-                                max=71,
-                                value=[0,71],
-                                allowCross=False
-                            ),
-                            dcc.Loading(id = "loading-icon-3", children=[dcc.Graph(id='fig_3')], type="circle")
-                        ], className="pretty_container"),
-                    ],className="col-5"
-                ),
-                dbc.Col(
-                    [
-                        html.Div(
-                            [
-                                html.P(
-                                    children = 'Filtrar por rango de tenors:Filtrar por rango de tenors:',
-                                    #className="control_label",
-                                    id = 'tenor_slider_output_4',
-                                ),
-                                dcc.Checklist(
-                                    id='porcentaje_4',
-                                    options=[
-                                        {'label': ' Mostrar porcentaje', 'value': 'True'}
-                                    ],
-                                    className="dcc_control"
-                                ),
-                                dcc.RangeSlider(
-                                    id='tenor_slider_4',
-                                    #className="dcc_control",
-                                    min=0,
-                                    max=71,
-                                    value=[0,71],
-                                    allowCross=False
-                                ),
-                                dcc.Loading(id = "loading-icon-4", children=[dcc.Graph(id='fig_4')], type="circle"),
-                            ], className="pretty_container"
+                        ], className = "pretty_container"),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.Div([html.Label('USD'),dcc.Input(id='usd', value='800', type='number',style={'text-align':'right'})]),
+                                    html.Div([html.Label('UF'),dcc.Input(id='uf', value='28000', type='number',style={'text-align':'right'})]),
+                                ], className = 'pretty_container', 
+                            )
+
+                        ],className="row"
+                    ),
+                            
+                    dash_table.DataTable(
+                            id='table',
+                            style_table = {
+                                'box-sizing': 'border-box',
+                                'overflowX': 'scroll'
+                            },
+                            style_header={
+                                'fontWeight': 'bold',
+                                'textAlign': 'center'
+                            },
+                            style_cell_conditional=[
+                                {
+                                    'if': {'column_id': 'Tenor'},
+                                    'textAlign': 'left'
+                                }
+                            ],
+                            style_data_conditional=[
+                                {
+                                    'if': {'row_index': 'odd'},
+                                    'backgroundColor': 'rgb(251, 251, 251)'
+                                },
+                                {
+                                    'if': {
+                                        'column_id': 'SD',
+                                        'filter_query': '{SD} > 0.0'
+                                    },
+                                    'color': 'green',
+                                },
+                                {
+                                    'if': {
+                                        'column_id': 'SD',
+                                        'filter_query': '{SD} < 0.0'
+                                    },
+                                    'color': 'red',
+                                },
+                            ]
                         ),
-                    ],className="col-7"
-                ),
+                ],className="four columns"
+            ),
+
+            html.Div(
+                [
+                html.Div(
+                    [
+                        html.P(
+                            children = 'Filtrar por rango de tenors:',
+                            id = 'tenor_slider_output_1',
+                        ),
+
+                        dcc.RangeSlider(
+                            id='tenor_slider_1',
+                            min=0,
+                            max=71,
+                            value=[0,71],
+                            allowCross=False
+                        ),
+                        dcc.Checklist(
+                            id='show_total',
+                            options=[
+                                {'label': '  Mostrar total', 'value': 'True'}
+                            ],
+                            className="dcc_control"
+                        ),
+                        dcc.Loading(id = "loading-icon-1", children=[html.Div(dcc.Graph(id='fig_1'))], type="circle")
+                    ],
+                    className="pretty_container"),
+                    
+                html.Div(
+                    [
+                        dcc.Checklist(
+                            id='cumulative_2',
+                            options=[
+                                {'label': ' Mostrar acumulado', 'value': 'True'}
+                            ],
+                            className="dcc_control"
+                        ),
+                        dcc.Loading(id = "loading-icon-2", children=[html.Div(dcc.Graph(id='fig_2'))], type="circle")
+                    ],
+                    className="pretty_container")
+                ],className="eight columns")
+        ], className='row'),
+
+        html.Div(
+            [
+                html.Div(
+                [
+                        html.P(
+                            children = 'Filtrar por rango de tenors:',
+                            id = 'tenor_slider_output_3',
+                        ),
+
+                        dcc.RangeSlider(
+                            id='tenor_slider_3',
+                            min=0,
+                            max=71,
+                            value=[0,71],
+                            allowCross=False
+                        ),
+                    dcc.Loading(id = "loading-icon-3", children=[html.Div(dcc.Graph(id='fig_3'))], type="circle")
+                ],className="pretty_container five columns"),
+                html.Div(
+                [
+                        html.P(
+                            children = 'Filtrar por rango de tenors:',
+                            id = 'tenor_slider_output_4',
+                        ),
+                        dcc.Checklist(
+                            id='porcentaje_4',
+                            options=[
+                                {'label': ' Mostrar porcentaje', 'value': 'True'}
+                            ],
+                            className="dcc_control"
+                        ),
+                        dcc.RangeSlider(
+                            id='tenor_slider_4',
+                            min=0,
+                            max=71,
+                            value=[0,71],
+                            allowCross=False
+                        ),
+                    dcc.Loading(id = "loading-icon-4", children=[html.Div(dcc.Graph(id='fig_4'))], type="circle")
+                ],className="pretty_container seven columns"),
+
             ],
+            className='row'
         ),
-],
+
+],id="mainContainer",style={"display": "flex","flex-direction": "column"}
 )
-app.layout = html.Div([body])
+ 
 
 
 @app.callback(Output("loading-icon-1", "children"))
