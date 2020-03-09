@@ -64,7 +64,7 @@ body = dbc.Container(
                 dbc.Col(
                     [
                         html.H1('SEF Market Data Activity',),
-                        html.H4('Versión Alpha 1.0.4',),
+                        html.H4('Versión Alpha 1.1.0',),
                     ],style = {'text-align': 'center'}
                 )
             ]
