@@ -4,6 +4,7 @@ import dash
 import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
+#import numpy as np
 #mport dash_dangerously_set_inner_html
 from dash.dependencies import Input, Output, State
 
@@ -34,7 +35,7 @@ app.layout = html.Div(children=
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H6('Versión Alpha 1.1.1',),
+                        html.H6('Versión Alpha 1.1.2',),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
@@ -196,19 +197,19 @@ app.layout = html.Div(children=
                             children = 'Filtrar por rango de tenors:',
                             id = 'tenor_slider_output_4',
                         ),
-                        dcc.Checklist(
-                            id='porcentaje_4',
-                            options=[
-                                {'label': ' Mostrar porcentaje', 'value': 'True'}
-                            ],
-                            className="dcc_control"
-                        ),
                         dcc.RangeSlider(
                             id='tenor_slider_4',
                             min=0,
                             max=71,
                             value=[0,71],
                             allowCross=False
+                        ),
+                        dcc.Checklist(
+                            id='porcentaje_4',
+                            options=[
+                                {'label': ' Mostrar porcentaje', 'value': 'True'}
+                            ],
+                            className="dcc_control"
                         ),
                     dcc.Loading(id = "loading-icon-4", children=[html.Div(dcc.Graph(id='fig_4'))], type="circle")
                 ],className="pretty_container seven columns"),
@@ -372,9 +373,10 @@ def update_table(producto,fecha, usd, uf, styles):
     fecha = datetime.strptime(fecha, '%Y-%m-%d')
     df = api.informe(producto = producto, start_date = date(2020,1,3), period = 'DAILY', usd = usd, uf = uf)
     cols = [{"name": i, "id": i} for i in list(df.columns)]
-    df = df.to_dict('records')
 
-    max_value = max(df, key=lambda val: val.get('Highest'))
+    df = df.to_dict('records')
+    
+    max_value = max(df, key=lambda val: int(val.get('Highest').replace(',','')) if val.get('Tenor') != 'Total' else 0)
 
     styles.append({
         'if': {
@@ -383,7 +385,6 @@ def update_table(producto,fecha, usd, uf, styles):
         },
         'backgroundColor': 'yellow'
     })
-    
     return df,cols, styles
 
 if __name__ == '__main__':
