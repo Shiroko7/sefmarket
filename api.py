@@ -1347,3 +1347,167 @@ def participation_graph_by_date(producto, start_date,tenor_range=None,usd=770, u
 
     fig.update_layout(title= producto+' Market Share: ')
     return fig
+
+def tenor_graph(producto, tenors,start_date,period,usd=770, uf=1, cumulative = False):
+    #definir today (ayer)
+    today = date.today()
+    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
+    today = today - shift
+    
+    usd,uf,duration,l = values_product(producto,usd,uf)
+    
+    if period == 'WEEKLY':
+        #last_monday = start_date - timedelta(days=start_date.weekday())
+        #coming_monday = start_date + timedelta(days=-start_date.weekday(), weeks=1)
+        #start_date = min([last_monday,coming_monday], key=lambda x: abs(x - start_date))
+        start_date = start_date + timedelta(days=-start_date.weekday(), weeks=1)
+        today = today - timedelta(days=today.weekday()) - timedelta(days=3)
+
+    df = daily_change(producto, start_date, today)
+    
+    #date to datetime
+    df['Date'] = pd.to_datetime(df['Date'])
+    #hacer un BIG FILL
+    df = fill_df(df,start_date,today)
+    
+    if period == 'DAILY':
+        df = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
+    elif period == 'WEEKLY':
+        df = df.groupby('Tenor').resample('W',label='left',on='Date').sum().reset_index()
+    elif period == 'MONTHLY':
+        df = df.groupby('Tenor').resample("M",label='left',on='Date').sum().reset_index()
+
+    if producto != 'NDF_USD_CLP':
+        #pasar a DV01
+        df = volume_to_dv01(df,usd,uf,duration,l)
+        df = df.rename(columns = {'Volume':'DV01'})
+        
+        #crear time series
+        fig = go.Figure()       
+        for tenor in tenors:
+            df = df.groupby(['Tenor','Date']).agg({'DV01':'sum'}).reset_index()
+            x_ = df[df['Tenor']==tenor]['Date']
+            if cumulative == False:
+                y_ = df[df['Tenor']==tenor]['DV01']
+            else:
+                y_ = df[df['Tenor']==tenor]['DV01'].cumsum()  
+
+            fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))#, name="AAPL Low",line_color='dimgray'))
+
+        #formatear fecha
+        if start_date.year == today.year:
+            start_date = start_date.strftime('%d %B')
+        else:
+            start_date = start_date.strftime('%d %B %Y')
+        today = today.strftime('%d %B %Y')
+        fig.update_layout(xaxis={'title':tenor},
+                          yaxis={'title':'DV01'})
+        
+    else:
+        #crear time series
+        fig = go.Figure()
+        for tenor in tenors:
+            df = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
+            x_ = df[df['Tenor']==tenor]['Date']
+            if cumulative == False:
+                y_ = df[df['Tenor']==tenor]['Volume']
+            else:
+                y_ = df[df['Tenor']==tenor]['Volume'].cumsum()
+
+            fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))#, name="AAPL Low",line_color='dimgray'))
+
+        #formatear fecha
+        if start_date.year == today.year:
+            start_date = start_date.strftime('%d %B')
+        else:
+            start_date = start_date.strftime('%d %B %Y')
+        today = today.strftime('%d %B %Y')
+        
+        fig.update_layout(xaxis={'title':tenor},
+                          yaxis={'title':'Volume'})
+
+    # Add range slider
+    fig.update_layout(
+        xaxis=go.layout.XAxis(
+            rangeslider=dict(
+                visible=True
+            ),
+        )
+    )
+    fig.update_layout(title=  str(period)+ ' Time Series ' + producto)
+    return fig
+
+
+def bar_by_tenor(producto, start_date, tenor_range=None,usd=770, uf=1,show_total=False):
+    #definir today (ayer)
+    today = date.today()
+    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
+    today = today - shift
+    
+    usd,uf,duration,l = values_product(producto,usd,uf)
+    
+    #cargar data
+    df = query_by_daterange(producto, start_date, today)
+
+    #usar tenors en rango
+    if tenor_range is not None:
+        mask = df.apply(lambda row: in_date(row['Tenor'],tenor_range), axis=1)
+        df = df[mask]
+    
+    if df.empty:
+        print("No se encontraron transacciones en: " + str(tenor_range))
+        return None
+
+    #formatear fecha
+    if start_date.year == today.year:
+        start_date = start_date.strftime('%d %B')
+    else:
+        start_date = start_date.strftime('%d %B %Y')
+    today = today.strftime('%d %B %Y')
+    
+    if producto != 'NDF_USD_CLP':
+        #pasar a DV01
+        df = volume_to_dv01(df,usd,uf,duration,l)
+        if show_total:
+        #Agregar total
+            date_list = df['Date'].unique()
+            for single_date in date_list:
+                t = {'Tenor':'Total',
+                    'Volume': df[df['Date']==single_date]['Volume'].sum(),
+                    'Date': single_date,
+                }
+                df = df.append(pd.Series(t),ignore_index=True)
+
+        df = df.groupby(['Tenor']).agg({'Volume': 'sum'}).reset_index()
+        df = df.rename(columns = {'Volume':'DV01'})
+        #sort
+        df = tenor_sort_2(df)
+        fig = go.Figure([go.Bar(x=df['Tenor'], y=df['DV01'])])
+        
+        fig.update_layout(barmode='stack',
+                      xaxis={'title':'Tenor'},
+                      yaxis={'title':'DV01'},
+                      title='Accumulated ' + producto+': '+start_date+' to '+today)
+        
+    else:
+        if show_total:
+        #Agregar total
+            date_list = df['Date'].unique()
+            for single_date in date_list:
+                t = {'Tenor':'Total',
+                    'Volume': df[df['Date']==single_date]['Volume'].sum(),
+                    'Date': single_date,
+                }
+                df = df.append(pd.Series(t),ignore_index=True)
+        df = df.groupby(['Tenor']).agg({'Volume': 'sum'}).reset_index()
+        df['Volume']=df['Volume']*l
+        
+        #sort
+        df = tenor_sort_2(df)
+        fig = go.Figure([go.Bar(x=df['Tenor'], y=df['Volume'])])
+        fig.update_layout(barmode='stack',
+                          xaxis={'title':'Tenor'},
+                          yaxis={'title':'Volume'},
+                          title= 'Accumulated '+ producto+': '+start_date+' to '+today)
+        
+    return fig

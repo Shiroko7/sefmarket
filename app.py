@@ -4,6 +4,7 @@ import dash
 import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
+#import json
 #import numpy as np
 #mport dash_dangerously_set_inner_html
 from dash.dependencies import Input, Output, State
@@ -22,20 +23,20 @@ today = today - shift
 
 options = [str(i)+'D' for i in range(0,30)] + [str(i)+'M' for i in range(1,13)] +  [str(i)+'Y' for i in range(1,31)]
 a = {i:options[i] for i in range(len(options))}
-
+b = [{'label': options[i], 'value': options[i]} for i in range(len(options))]
 
 app = dash.Dash(__name__)
 server = app.server
 
 
 app.layout = html.Div(children=
-    [
+    [#html.Div(id='options', style={'display': 'none'}),
         html.Div(
             [
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H6('Versión Alpha 1.1.2',),
+                        html.H6('Versión Alpha 1.2.0',),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
@@ -142,9 +143,18 @@ app.layout = html.Div(children=
 
                         dcc.RangeSlider(
                             id='tenor_slider_1',
-                            min=0,
-                            max=71,
-                            value=[0,71],
+                            min = 0,
+                            max = 71,
+                            value = [0,71],
+                            marks = {
+                                    0 :{'label': '0D'},
+                                    30:{'label': '1M'},
+                                    41:{'label': '12M'},
+                                    46:{'label': '5Y'},
+                                    51:{'label': '10Y'},
+                                    61:{'label': '20Y'},
+                                    71:{'label': '30Y'},
+                                },
                             allowCross=False
                         ),
                         dcc.Checklist(
@@ -157,7 +167,43 @@ app.layout = html.Div(children=
                         dcc.Loading(id = "loading-icon-1", children=[html.Div(dcc.Graph(id='fig_1'))], type="circle")
                     ],
                     className="pretty_container"),
-                    
+                html.Div(
+                    [
+                        html.P(
+                            children = 'Filtrar por rango de tenors:',
+                            id = 'tenor_slider_output_6',
+                        ),
+                        dcc.RangeSlider(
+                            id='tenor_slider_6',
+                            min = 0,
+                            max = 71,
+                            value = [0,71],
+                            marks = {
+                                    0 :{'label': '0D'},
+                                    30:{'label': '1M'},
+                                    41:{'label': '12M'},
+                                    46:{'label': '5Y'},
+                                    51:{'label': '10Y'},
+                                    61:{'label': '20Y'},
+                                    71:{'label': '30Y'},
+                                },
+                            allowCross=False
+                        ),
+                        dcc.Checklist(
+                            id='show_total_6',
+                            options=[
+                                {'label': '  Mostrar total', 'value': 'True'}
+                            ],
+                            className="dcc_control"
+                        ),
+                        dcc.Loading(id = "loading-icon-6", children=[html.Div(dcc.Graph(id='fig_6'))], type="circle")
+                    ],
+                    className="pretty_container"),
+
+                ],className="eight columns")
+        ], className='row'),
+        html.Div(
+            [
                 html.Div(
                     [
                         dcc.Checklist(
@@ -169,10 +215,28 @@ app.layout = html.Div(children=
                         ),
                         dcc.Loading(id = "loading-icon-2", children=[html.Div(dcc.Graph(id='fig_2'))], type="circle")
                     ],
-                    className="pretty_container")
-                ],className="eight columns")
-        ], className='row'),
-
+                    className="pretty_container six columns"),
+                html.Div(
+                    [
+                        dcc.Dropdown(
+                            id='dropdown_5',
+                            options=b,
+                            value=['1M', '12M','5Y'],
+                            multi=True
+                        ), 
+                        dcc.Checklist(
+                            id='cumulative_5',
+                            options=[
+                                {'label': ' Mostrar acumulado', 'value': 'True'}
+                            ],
+                            className="dcc_control"
+                        ),
+                        dcc.Loading(id = "loading-icon-5", children=[html.Div(dcc.Graph(id='fig_5'))], type="circle")
+                    ],
+                    className="pretty_container six columns"),
+            ],
+            className='row'
+        ),
         html.Div(
             [
                 html.Div(
@@ -184,9 +248,18 @@ app.layout = html.Div(children=
 
                         dcc.RangeSlider(
                             id='tenor_slider_3',
-                            min=0,
-                            max=71,
-                            value=[0,71],
+                            min = 0,
+                            max = 71,
+                            value = [0,71],
+                            marks = {
+                                    0 :{'label': '0D'},
+                                    30:{'label': '1M'},
+                                    41:{'label': '12M'},
+                                    46:{'label': '5Y'},
+                                    51:{'label': '10Y'},
+                                    61:{'label': '20Y'},
+                                    71:{'label': '30Y'},
+                                },
                             allowCross=False
                         ),
                     dcc.Loading(id = "loading-icon-3", children=[html.Div(dcc.Graph(id='fig_3'))], type="circle")
@@ -199,9 +272,18 @@ app.layout = html.Div(children=
                         ),
                         dcc.RangeSlider(
                             id='tenor_slider_4',
-                            min=0,
-                            max=71,
-                            value=[0,71],
+                            min = 0,
+                            max = 71,
+                            value = [0,71],
+                            marks = {
+                                    0 :{'label': '0D'},
+                                    30:{'label': '1M'},
+                                    41:{'label': '12M'},
+                                    46:{'label': '5Y'},
+                                    51:{'label': '10Y'},
+                                    61:{'label': '20Y'},
+                                    71:{'label': '30Y'},
+                                },
                             allowCross=False
                         ),
                         dcc.Checklist(
@@ -217,35 +299,93 @@ app.layout = html.Div(children=
             ],
             className='row'
         ),
-
 ],id="mainContainer",style={"display": "flex","flex-direction": "column"}
 )
  
+#@app.callback(Output('options', 'children'), [Input('producto', 'value')])
+#def load_tenors(producto):
+#    hidden_df = api.query_by_daterange(producto,date(2020,1,3),today)
+#    options = hidden_df['Tenor'].unique()
+#    options = api.tenor_sort_3(options)
+#    return json.dumps(options)
 
+@app.callback(
+    Output('tenor_slider_output_1', 'children'),
+    [Input('tenor_slider_1', 'value'),
+    #Input('options','children')
+    ])
+def update_output(value):#,options):
+    #options = json.loads(options)
+    #a = {i:options[i] for i in range(len(options))}
+    return 'Filtrar por rango de tenors: {}-{}'.format(a[value[0]],a[value[1]])
+
+@app.callback(
+    Output('tenor_slider_output_3', 'children'),
+    [Input('tenor_slider_3', 'value'),
+    #Input('options','children')
+    ])
+def update_output(value):#,options):
+    #options = json.loads(options)
+    #a = {i:options[i] for i in range(len(options))}
+    return 'Filtrar por rango de tenors: {}-{}'.format(a[value[0]],a[value[1]])
+
+@app.callback(
+    Output('tenor_slider_output_4', 'children'),
+    [Input('tenor_slider_4', 'value'),
+    #Input('options','children')
+    ])
+def update_output(value):#,options):
+    #options = json.loads(options)
+    #a = {i:options[i] for i in range(len(options))}
+    return 'Filtrar por rango de tenors: {}-{}'.format(a[value[0]],a[value[1]])
+
+@app.callback(
+    Output('tenor_slider_output_6', 'children'),
+    [Input('tenor_slider_6', 'value'),
+    #Input('options','children')
+    ])
+def update_output(value):#,options):
+    #options = json.loads(options)
+    #a = {i:options[i] for i in range(len(options))}
+    return 'Filtrar por rango de tenors: {}-{}'.format(a[value[0]],a[value[1]])
+
+
+#@app.callback(
+#    [Output('tenor_slider_1','min'),
+#     Output('tenor_slider_1','max'),
+#     Output('tenor_slider_1','value'),
+#     Output('tenor_slider_3','min'),
+#     Output('tenor_slider_3','max'),
+#     Output('tenor_slider_3','value'),
+#     Output('tenor_slider_4','min'),
+#     Output('tenor_slider_4','max'),
+#     Output('tenor_slider_4','value'),
+#     Output('tenor_slider_6','min'),
+#     Output('tenor_slider_6','max'),
+#     Output('tenor_slider_6','value')],
+#    [Input('options','children')]
+#)
+#
+#def update_rangesliders(options):
+#    options = json.loads(options)
+#    a = {i:options[i] for i in range(len(options))}
+#    return 0,len(a)-1,[0,len(a)-1],0,len(a)-1,[0,len(a)-1],0,len(a)-1,[0,len(a)-1],0,len(a)-1,[0,len(a)-1]
+
+#@app.callback(
+#    [Output('dropdown_5','options'),
+#    Output('dropdown_5','value')],
+#    [Input('options','children')]
+#)
+#
+#def update_dropdown_5(options):
+#    #options = json.loads(options)
+#    #b = [{'label': options[i], 'value': options[i]} for i in range(len(options))]
+#    return b,[b[0]['value'],b[-1]['value']]
 
 @app.callback(Output("loading-icon-1", "children"))
 @app.callback(Output("loading-icon-2", "children"))
 @app.callback(Output("loading-icon-3", "children"))
 @app.callback(Output("loading-icon-4", "children"))
-
-
-@app.callback(
-    Output('tenor_slider_output_1', 'children'),
-    [Input('tenor_slider_1', 'value')])
-def update_output(value):
-    return 'Filtrar por rango de tenors: {}-{}'.format(a[value[0]],a[value[1]])
-
-@app.callback(
-    Output('tenor_slider_output_3', 'children'),
-    [Input('tenor_slider_3', 'value')])
-def update_output(value):
-    return 'Filtrar por rango de tenors: {}-{}'.format(a[value[0]],a[value[1]])
-
-@app.callback(
-    Output('tenor_slider_output_4', 'children'),
-    [Input('tenor_slider_4', 'value')])
-def update_output(value):
-    return 'Filtrar por rango de tenors: {}-{}'.format(a[value[0]],a[value[1]])
 
 
 @app.callback(
@@ -256,12 +396,16 @@ def update_output(value):
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
      Input(component_id='tenor_slider_1', component_property='value'),
-     Input(component_id='show_total', component_property='value')],
+     Input(component_id='show_total', component_property='value'),
+     #Input(component_id='options',component_property='children')
+     ],
 )
-def update_graph_1(producto,periodo,fecha, usd, uf,tenor_slider_1,show_total):
+def update_graph_1(producto,periodo,fecha, usd, uf,tenor_slider_1,show_total):#options):
     usd = int(usd)
     uf = int(uf)
     fecha = datetime.strptime(fecha, '%Y-%m-%d')
+    #options = json.loads(options)
+    #a = {i:options[i] for i in range(len(options))}
     tenors = (a[tenor_slider_1[0]],a[tenor_slider_1[1]])
     #print("start:" + str(producto))
     flag = False
@@ -290,17 +434,12 @@ def update_graph_2(producto,periodo,fecha, usd, uf,cumulative_2):
     usd = int(usd)
     uf = int(uf)
     fecha = datetime.strptime(fecha, '%Y-%m-%d')
-    #print("start:" + str(producto))
     flag = False
     if cumulative_2 is not None:
         if len(cumulative_2)!=0:
             flag = True
 
-    start = time.time()
     fig = api.general_graph(producto=producto, tenor='All', start_date=fecha,period=periodo,usd=usd, uf=uf, cumulative = flag)
-    end = time.time()
-    
-    #print("overall time: " + str(producto), end - start)
 
     return fig
 
@@ -310,21 +449,19 @@ def update_graph_2(producto,periodo,fecha, usd, uf,cumulative_2):
      Input(component_id='fecha', component_property='value'),
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
-     Input(component_id='tenor_slider_3', component_property='value')],
+     Input(component_id='tenor_slider_3', component_property='value'),
+     #Input(component_id='options',component_property='children')
+     ],
      
 )
-def update_graph_3(producto,fecha, usd, uf,tenor_slider_3):
+def update_graph_3(producto,fecha, usd, uf,tenor_slider_3):#,options):
     usd = int(usd)
     uf = int(uf)
     fecha = datetime.strptime(fecha, '%Y-%m-%d')
+    #options = json.loads(options)
+    #a = {i:options[i] for i in range(len(options))}
     tenor_slider_3 = (a[tenor_slider_3[0]],a[tenor_slider_3[1]])
-    #print("start:" + str(producto))
-
-    #start = time.time()
     fig = api.participation_graph(producto=producto, start_date=fecha, tenor_range=tenor_slider_3,usd=usd, uf=uf)
-    #end = time.time()
-    
-    #print("overall time: " + str(producto), end - start)
 
     return fig
 
@@ -336,25 +473,71 @@ def update_graph_3(producto,fecha, usd, uf,tenor_slider_3):
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
      Input(component_id='tenor_slider_4',component_property='value'),
-     Input(component_id='porcentaje_4',component_property='value'),]
+     Input(component_id='porcentaje_4',component_property='value'),
+     #Input(component_id='options',component_property='children')
+     ]
 )
-def update_graph_4(producto,fecha, usd, uf, tenor_slider_4,porcentaje_4):
+def update_graph_4(producto,fecha, usd, uf, tenor_slider_4,porcentaje_4):#,options):
     usd = int(usd)
     uf = int(uf)
     fecha = datetime.strptime(fecha, '%Y-%m-%d')
+    #options = json.loads(options)
+    #a = {i:options[i] for i in range(len(options))}
     tenor_slider_4 =  (a[tenor_slider_4[0]],a[tenor_slider_4[1]])
     flag = False
     if porcentaje_4 is not None:
         if len(porcentaje_4) != 0:
             flag = True
-    #print("start:" + str(producto))
-
-    #start = time.time()
     fig = api.participation_graph_by_date(producto=producto, start_date=fecha,tenor_range=tenor_slider_4,usd=usd, uf=uf,percent=flag)
-    #end = time.time()
 
-    #print("overall time: " + str(producto), end - start)
+    return fig
 
+@app.callback(
+    Output(component_id='fig_5', component_property='figure'),
+    [Input(component_id='producto', component_property='value'),
+     Input(component_id='periodo', component_property='value'),
+     Input(component_id='fecha', component_property='value'),
+     Input(component_id='usd', component_property='value'),
+     Input(component_id='uf', component_property='value'),
+     Input(component_id='cumulative_5', component_property='value'),
+     Input(component_id='dropdown_5', component_property='value')]
+)
+def update_graph_5(producto,periodo,fecha, usd, uf,cumulative_5,dropdown_5):
+    usd = int(usd)
+    uf = int(uf)
+    fecha = datetime.strptime(fecha, '%Y-%m-%d')
+    #print("start:" + str(producto))
+    flag = False
+    if cumulative_5 is not None:
+        if len(cumulative_5)!=0:
+            flag = True
+    fig = api.tenor_graph(producto=producto, tenors=dropdown_5,start_date=fecha,period=periodo,usd=usd, uf=uf, cumulative = flag)
+
+    return fig
+
+@app.callback(
+    Output(component_id='fig_6', component_property='figure'),
+    [Input(component_id='producto', component_property='value'),
+     Input(component_id='fecha', component_property='value'),
+     Input(component_id='usd', component_property='value'),
+     Input(component_id='uf', component_property='value'),
+     Input(component_id='tenor_slider_6', component_property='value'),
+    Input(component_id='show_total_6', component_property='value'),
+    #Input(component_id='options',component_property='children')
+    ],
+)
+def update_graph_6(producto,fecha, usd, uf,tenor_slider_6,show_total_6):#,options):
+    usd = int(usd)
+    uf = int(uf)
+    fecha = datetime.strptime(fecha, '%Y-%m-%d')
+    #options = json.loads(options)
+    #a = {i:options[i] for i in range(len(options))}
+    tenors = (a[tenor_slider_6[0]],a[tenor_slider_6[1]])
+    flag = False
+    if show_total_6 is not None:
+        if len(show_total_6)!=0:
+            flag = True
+    fig = api.bar_by_tenor(producto=producto,start_date=fecha,tenor_range=tenors,usd=usd,uf=uf,show_total=flag)
     return fig
 
 @app.callback(
