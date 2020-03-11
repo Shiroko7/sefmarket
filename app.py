@@ -36,7 +36,7 @@ app.layout = html.Div(children=
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H6('Versión Alpha 1.2.0',),
+                        html.H6('Versión Alpha 1.2.1',),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
@@ -115,19 +115,20 @@ app.layout = html.Div(children=
                                 },
                                 {
                                     'if': {
-                                        'column_id': 'SD',
-                                        'filter_query': '{SD} > 0.0'
+                                        'column_id': 'Zs',
+                                        'filter_query': '{Zs} > 0.0'
                                     },
                                     'color': 'green',
                                 },
                                 {
                                     'if': {
-                                        'column_id': 'SD',
-                                        'filter_query': '{SD} < 0.0'
+                                        'column_id': 'Zs',
+                                        'filter_query': '{Zs} < 0.0'
                                     },
                                     'color': 'red',
                                 },
-                            ]
+                            ],
+                            merge_duplicate_headers=True,
                         ),
                 ],className="four columns"
             ),
@@ -199,7 +200,16 @@ app.layout = html.Div(children=
                         dcc.Loading(id = "loading-icon-6", children=[html.Div(dcc.Graph(id='fig_6'))], type="circle")
                     ],
                     className="pretty_container"),
-
+                html.Div( [
+                        dcc.Checklist(
+                            id='show_total_7',
+                            options=[
+                                {'label': '  Mostrar acumulado', 'value': 'True'}
+                            ],
+                            className="dcc_control"
+                        ),
+                        dcc.Loading(id = "loading-icon-7", children=[dcc.Graph(id='fig_7')], type="circle"),
+                ],id='div_7',className="pretty_container")
                 ],className="eight columns")
         ], className='row'),
         html.Div(
@@ -382,10 +392,12 @@ def update_output(value):#,options):
 #    #b = [{'label': options[i], 'value': options[i]} for i in range(len(options))]
 #    return b,[b[0]['value'],b[-1]['value']]
 
-@app.callback(Output("loading-icon-1", "children"))
-@app.callback(Output("loading-icon-2", "children"))
-@app.callback(Output("loading-icon-3", "children"))
-@app.callback(Output("loading-icon-4", "children"))
+#@app.callback(Output("loading-icon-1", "children"))
+#@app.callback(Output("loading-icon-2", "children"))
+#@app.callback(Output("loading-icon-3", "children"))
+#@app.callback(Output("loading-icon-4", "children"))
+#@app.callback(Output("loading-icon-6", "children"))
+#@app.callback(Output("loading-icon-7", "children"))
 
 
 @app.callback(
@@ -541,6 +553,48 @@ def update_graph_6(producto,fecha, usd, uf,tenor_slider_6,show_total_6):#,option
     return fig
 
 @app.callback(
+    Output('div_7','children'),    
+    [Input('producto','value'),
+    Input('fecha','value')]
+)
+
+def upgrade_div_7(producto,fecha):
+    if producto == 'NDF_USD_CLP':
+        fecha = datetime.strptime(fecha, '%Y-%m-%d')
+        fig = api.graph_ndf_index(fecha)
+        return  [
+                        dcc.Checklist(
+                            id='show_total_7',
+                            options=[
+                                {'label': '  Mostrar acumulado', 'value': 'True'}
+                            ],
+                            className="dcc_control"
+                        ),
+                        dcc.Loading(id = "loading-icon-7", children=[dcc.Graph(id='fig_7',figure=fig)], type="circle"),
+                ]
+    else:
+        return []
+
+
+@app.callback(
+    Output('fig_7','figure'),
+    [Input('producto','value'),
+    Input('fecha','value'),
+    Input('show_total_7','value')]
+)
+def upgrade_graph_7(producto,fecha,show_total_7):
+    if producto  == 'NDF_USD_CLP':
+        flag = False
+        if show_total_7 is not None:
+            if len(show_total_7)!=0:
+                flag = True
+        fecha = datetime.strptime(fecha, '%Y-%m-%d')
+        fig = api.graph_ndf_index(fecha,flag)
+        return fig
+    else:
+        return {}
+        
+@app.callback(
     [Output(component_id='table', component_property='data'),
     Output(component_id='table', component_property='columns'),
     Output(component_id='table', component_property='style_data_conditional')],
@@ -554,8 +608,28 @@ def update_table(producto,fecha, usd, uf, styles):
     usd = int(usd)
     uf = int(uf)
     fecha = datetime.strptime(fecha, '%Y-%m-%d')
-    df = api.informe(producto = producto, start_date = date(2020,1,3), period = 'DAILY', usd = usd, uf = uf)
-    cols = [{"name": i, "id": i} for i in list(df.columns)]
+    df = api.informe(producto = producto, start_date = fecha, period = 'DAILY', usd = usd, uf = uf)
+    if producto != 'NDF_USD_CLP':
+        cols = [
+                {"name": ['','Tenor'], 'id':"Tenor"},
+                {"name": ['Actual','Volume'], 'id':"Volume"},
+                {"name": ['Actual','DV01'], 'id':"DV01"},
+                {"name": ['Actual','Zs'], 'id':"Zs"},
+                {"name": ['Historic','Highest'], 'id':"Highest"},
+                {"name": ['Historic','Mean'], 'id':'Mean'},
+                {"name": ['Days Traded','Count'], 'id':'Trades'},
+                {"name": ['Days Traded','%'], 'id':"Percent"},
+        ]
+    else:
+        cols = [
+                {"name": ['','Tenor'], 'id':"Tenor"},
+                {"name": ['Actual','Volume'], 'id':"Volume"},
+                {"name": ['Actual','Zs'], 'id':"Zs"},
+                {"name": ['Historic','Highest'], 'id':"Highest"},
+                {"name": ['Historic','Mean'], 'id':'Mean'},
+                {"name": ['Days Traded','Count'], 'id':'Trades'},
+                {"name": ['Days Traded','%'], 'id':"Percent"},
+        ]
 
     df = df.to_dict('records')
     
@@ -569,6 +643,7 @@ def update_table(producto,fecha, usd, uf, styles):
         'backgroundColor': 'yellow'
     })
     return df,cols, styles
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)

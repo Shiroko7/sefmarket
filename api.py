@@ -500,10 +500,10 @@ def informe_v1(producto,start_date,period,usd,uf=1):
         l = 1
 
     #crear df con todos los tenors
-    cols = ['Tenor','Volume','DV01','SD','Highest','Mean','Days Traded']
+    cols = ['Tenor','Volume','DV01','SD','Highest','Mean','Days Traded','Percent']
     empty_df = pd.DataFrame(columns = cols)
     for i in duration.keys():
-        dfi =  pd.DataFrame([[i,0,0,0,0,0,0]],columns = cols)
+        dfi =  pd.DataFrame([[i,0,0,0,0,0,0,0]],columns = cols)
         empty_df = empty_df.append(dfi)
     
     #calcular fecha desde hoy
@@ -642,7 +642,8 @@ def informe_v1(producto,start_date,period,usd,uf=1):
     }
     total = pd.Series(t)
     df = df.append(total,ignore_index=True)
-    
+    df['Percent'] = df['Days Traded']/historic_trades
+    df['Percent'] = pd.Series(["{0:,.2f}".format(val) for val in df['Percent']], index = df.index)
     #formato tabla
     df['Mean'] = pd.Series(["{0:,.0f}".format(val) for val in df['Mean']], index = df.index)
     #df['SD'] = pd.Series([round(val * 2) / 2 for val in df['SD']], index = df.index)
@@ -663,7 +664,7 @@ def informe_ndf(start_date, period):
         return None
         
     #crear df con todos los tenors
-    cols = ['Tenor','Volume','SD','Highest','Mean','Days Traded']
+    cols = ['Tenor','Volume','SD','Highest','Mean','Days Traded','Percent']
 
     #calcular fecha desde hoy
     today = date.today()
@@ -785,6 +786,8 @@ def informe_ndf(start_date, period):
     total = pd.Series(t)
     df = df.append(total,ignore_index=True)
     #formato tabla
+    df['Percent'] = df['Days Traded']/historic_trades
+    df['Percent'] = pd.Series(["{0:,.2f}".format(val) for val in df['Percent']], index = df.index)
     df['Mean'] = pd.Series(["{0:,.0f}".format(val) for val in df['Mean']], index = df.index)
     #df['Mean'] = df.apply(lambda x: "{:,}".format(x['Mean']), axis=1)
     #df['SD'] = pd.Series([round(val * 2) / 2 for val in df['SD']], index = df.index)
@@ -792,6 +795,8 @@ def informe_ndf(start_date, period):
     df['Highest'] = pd.Series(["{0:,.0f}".format(val) for val in df['Highest']], index = df.index)
     df['Volume'] = pd.Series(["{0:,.0f}".format(val) for val in df['Volume']], index = df.index)
     df['Days Traded'] = pd.Series(["{0:,.0f}".format(val) for val in df['Days Traded']], index = df.index)
+
+
     df = df[cols]
     df = df.set_index('Tenor')
     return df
@@ -802,6 +807,7 @@ def informe(producto, start_date, period, usd, uf):
         df = informe_v1(producto,start_date,period,usd,uf)
     else:
         df = informe_ndf(start_date,period)
+    df = df.rename(columns={'SD': 'Zs','Days Traded':'Trades'})
     df = df.reset_index(drop=False)
     return df
 
@@ -1511,3 +1517,37 @@ def bar_by_tenor(producto, start_date, tenor_range=None,usd=770, uf=1,show_total
                           title= 'Accumulated '+ producto+': '+start_date+' to '+today)
         
     return fig
+
+
+
+def ndf_index(fecha):
+    df = query_by_date('NDF_USD_CLP',fecha)
+    df = df.groupby('Tenor').agg({'Volume':'sum'}).reset_index()
+    df['Volume']=df['Volume']*1e6
+    mask_inf = df.apply(lambda row: in_date(row['Tenor'],('0D','5D')), axis=1)
+    mask_mid = df.apply(lambda row: in_date(row['Tenor'],('6D','1M')), axis=1)
+    mask_sup = df.apply(lambda row: in_date(row['Tenor'],('2M','9999999999Y')), axis=1)
+    n_index = df[mask_mid]['Volume'].sum() - (df[mask_inf]['Volume'].sum() + df[mask_sup]['Volume'].sum())
+    return n_index
+
+
+def graph_ndf_index(start_date,cumulative = False):
+    today = date.today()
+    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
+    today = today - shift
+    business_days = pd.date_range(start=start_date, end=today, freq='B')
+    n_indexes = list()
+    for single_date in business_days:
+        n_indexes.append(ndf_index(single_date))
+    fig = go.Figure()
+    if not cumulative:
+        fig.add_trace(go.Scatter(x=business_days, y=n_indexes))
+        fig.update_layout(title = 'NDF INDEX Time Series ')
+    else:
+        fig.add_trace(go.Scatter(x=business_days, y=pd.Series(n_indexes).cumsum()))
+        fig.update_layout(title = 'Accumulated NDF INDEX Time Series ')
+    fig.update_layout(yaxis={'title':'Volume'})
+    
+    return fig
+
+
