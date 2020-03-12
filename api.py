@@ -1056,6 +1056,7 @@ def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, c
                 y_ = df['DV01'].cumsum()
         else:
             df= df[df['Tenor'].isin(tenors)]
+            actual_tenors = df['Tenor'].unique()
             df = df.groupby(['Date']).agg({'DV01':'sum'}).reset_index()
             x_ = df['Date']
             if cumulative == False:
@@ -1065,7 +1066,7 @@ def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, c
                 
         #crear time series
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=x_, y=y_))#, name="AAPL Low",line_color='dimgray'))
+        fig.add_trace(go.Scatter(x=x_, y=y_))
         
         if cumulative == False:
             #agregar meadia
@@ -1089,8 +1090,7 @@ def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, c
         else:
             start_date = start_date.strftime('%d %B %Y')
         end_date = end_date.strftime('%d %B %Y')
-        fig.update_layout(xaxis={'title':' '.join(tenors)},
-                          yaxis={'title':'DV01'})
+        fig.update_layout(yaxis={'title':'DV01'})
         
     else:
         df['Volume']=df['Volume']*l
@@ -1103,6 +1103,7 @@ def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, c
                 y_ = df['Volume'].cumsum()
         else:
             df =  df[df['Tenor'].isin(tenors)]
+            actual_tenors = df['Tenor'].unique()
             df = df.groupby(['Date']).agg({'Volume':'sum'}).reset_index()
             x_ = df['Date']
             if cumulative == False:
@@ -1136,9 +1137,11 @@ def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, c
             start_date = start_date.strftime('%d %B %Y')
         end_date = end_date.strftime('%d %B %Y')
         
-        fig.update_layout(xaxis={'title':' '.join(tenors)},
-                          yaxis={'title':'Volume'})
-    fig.update_layout(title=  str(period)+ ' Time Series ' + producto)
+        fig.update_layout(yaxis={'title':'Volume'})
+    if 'All' in tenors:
+        fig.update_layout(title=  str(period)+ ' Time Series ' + producto + ': All')
+    else:
+        fig.update_layout(title=  str(period)+ ' Time Series ' + producto + ': ' + ' + '.join(actual_tenors))
 
     # Add range slider
     fig.update_layout(

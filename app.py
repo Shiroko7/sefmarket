@@ -36,7 +36,7 @@ app.layout = html.Div(children=
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H6('Versión Alpha 1.2.5',),
+                        html.H6('Versión Alpha 1.2.6',),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
@@ -94,7 +94,7 @@ app.layout = html.Div(children=
 
                             html.Div(
                                 [
-                                    dcc.Input(id='usd', value='850', type='number',style={'text-align':'right'}),
+                                    dcc.Input(id='usd', value='850', type='number',style={'text-align':'right','margin-right':'2000px'}),
                                     dcc.Input(id='uf', value='28500', type='number',style={'text-align':'right'})
                                 ],style={'margin-left':'20px'}
                             ),
