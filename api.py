@@ -1027,7 +1027,7 @@ def box_plot_all(producto,start_date,period,tenor_range=None,usd=1,uf=1,show_tot
     #print('boxploting time: ', (end-start).seconds)
     return fig
 
-def general_graph(producto, tenor, start_date,period,usd=770, uf=1, cumulative = False):
+def general_graph(producto, tenors, start_date,period,usd=770, uf=1, cumulative = False):
     #definir today (ayer)
     today = date.today()
     shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
@@ -1062,7 +1062,7 @@ def general_graph(producto, tenor, start_date,period,usd=770, uf=1, cumulative =
         df = volume_to_dv01(df,usd,uf,duration,l)
         df = df.rename(columns = {'Volume':'DV01'})
         
-        if tenor == 'All':
+        if 'All' in tenors:
             df = df.groupby(['Date']).sum().reset_index()
             x_ = df['Date']
             if cumulative == False:
@@ -1070,16 +1070,17 @@ def general_graph(producto, tenor, start_date,period,usd=770, uf=1, cumulative =
             else:
                 y_ = df['DV01'].cumsum()
         else:
-            df = df.groupby(['Tenor','Date']).agg({'DV01':'sum'}).reset_index()
-            x_ = df[df['Tenor']==tenor]['Date']
+            df= df[df['Tenor'].isin(tenors)]
+            df = df.groupby(['Date']).agg({'DV01':'sum'}).reset_index()
+            x_ = df['Date']
             if cumulative == False:
-                y_ = df[df['Tenor']==tenor]['DV01']
+                y_ = df['DV01']
             else:
-                y_ = df[df['Tenor']==tenor]['DV01'].cumsum()  
+                y_ = df['DV01'].cumsum()  
                 
         #crear time series
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))#, name="AAPL Low",line_color='dimgray'))
+        fig.add_trace(go.Scatter(x=x_, y=y_))#, name="AAPL Low",line_color='dimgray'))
         
         if cumulative == False:
             #agregar meadia
@@ -1103,12 +1104,12 @@ def general_graph(producto, tenor, start_date,period,usd=770, uf=1, cumulative =
         else:
             start_date = start_date.strftime('%d %B %Y')
         today = today.strftime('%d %B %Y')
-        fig.update_layout(xaxis={'title':tenor},
+        fig.update_layout(xaxis={'title':' '.join(tenors)},
                           yaxis={'title':'DV01'})
         
     else:
         df['Volume']=df['Volume']*l
-        if tenor == 'All':
+        if 'All' in tenors:
             df = df.groupby(['Date']).sum().reset_index()
             x_ = df['Date']
             if cumulative == False:
@@ -1116,16 +1117,17 @@ def general_graph(producto, tenor, start_date,period,usd=770, uf=1, cumulative =
             else:
                 y_ = df['Volume'].cumsum()
         else:
-            df = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
-            x_ = df[df['Tenor']==tenor]['Date']
+            df =  df[df['Tenor'].isin(tenors)]
+            df = df.groupby(['Date']).agg({'Volume':'sum'}).reset_index()
+            x_ = df['Date']
             if cumulative == False:
-                y_ = df[df['Tenor']==tenor]['Volume']
+                y_ = df['Volume']
             else:
-                y_ = df[df['Tenor']==tenor]['Volume'].cumsum()
+                y_ = df['Volume'].cumsum()
                 
         #crear time series
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))#, name="AAPL Low",line_color='dimgray'))
+        fig.add_trace(go.Scatter(x=x_, y=y_))#, name="AAPL Low",line_color='dimgray'))
         if cumulative == False:
             fig.add_shape(
                     # Line Horizontal
@@ -1149,7 +1151,7 @@ def general_graph(producto, tenor, start_date,period,usd=770, uf=1, cumulative =
             start_date = start_date.strftime('%d %B %Y')
         today = today.strftime('%d %B %Y')
         
-        fig.update_layout(xaxis={'title':tenor},
+        fig.update_layout(xaxis={'title':' '.join(tenors)},
                           yaxis={'title':'Volume'})
     fig.update_layout(title=  str(period)+ ' Time Series ' + producto)
 
@@ -1389,17 +1391,25 @@ def tenor_graph(producto, tenors,start_date,period,usd=770, uf=1, cumulative = F
         df = df.rename(columns = {'Volume':'DV01'})
         
         #crear time series
-        fig = go.Figure()       
+        fig = go.Figure()
+        df_ = df.groupby(['Tenor','Date']).agg({'DV01':'sum'}).reset_index()
         for tenor in tenors:
-            df = df.groupby(['Tenor','Date']).agg({'DV01':'sum'}).reset_index()
-            x_ = df[df['Tenor']==tenor]['Date']
+            
+            x_ = df_[df_['Tenor']==tenor]['Date']
             if cumulative == False:
-                y_ = df[df['Tenor']==tenor]['DV01']
+                y_ = df_[df_['Tenor']==tenor]['DV01']
             else:
-                y_ = df[df['Tenor']==tenor]['DV01'].cumsum()  
+                y_ = df_[df_['Tenor']==tenor]['DV01'].cumsum()  
 
             fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))#, name="AAPL Low",line_color='dimgray'))
-
+        if 'All' in tenors:
+            df = df.groupby(['Date']).agg({'DV01':'sum'}).reset_index()
+            x_ = df['Date']
+            if cumulative == False:
+                y_ = df['DV01']
+            else:
+                y_ = df['DV01'].cumsum()
+            fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))
         #formatear fecha
         if start_date.year == today.year:
             start_date = start_date.strftime('%d %B')
@@ -1412,16 +1422,23 @@ def tenor_graph(producto, tenors,start_date,period,usd=770, uf=1, cumulative = F
     else:
         #crear time series
         fig = go.Figure()
+        df_ = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
         for tenor in tenors:
-            df = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
-            x_ = df[df['Tenor']==tenor]['Date']
+            x_ = df_[df_['Tenor']==tenor]['Date']
             if cumulative == False:
-                y_ = df[df['Tenor']==tenor]['Volume']
+                y_ = df_[df_['Tenor']==tenor]['Volume']
             else:
-                y_ = df[df['Tenor']==tenor]['Volume'].cumsum()
+                y_ = df_[df_['Tenor']==tenor]['Volume'].cumsum()
 
             fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))#, name="AAPL Low",line_color='dimgray'))
-
+        if 'All' in tenors:
+            df = df.groupby(['Date']).agg({'DV01':'sum'}).reset_index()
+            x_ = df['Date']
+            if cumulative == False:
+                y_ = df['DV01']
+            else:
+                y_ = df['DV01'].cumsum()
+            fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))
         #formatear fecha
         if start_date.year == today.year:
             start_date = start_date.strftime('%d %B')

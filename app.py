@@ -23,7 +23,7 @@ today = today - shift
 
 options = [str(i)+'D' for i in range(0,30)] + [str(i)+'M' for i in range(1,13)] +  [str(i)+'Y' for i in range(1,31)]
 a = {i:options[i] for i in range(len(options))}
-b = [{'label': options[i], 'value': options[i]} for i in range(len(options))]
+b = [{'label': options[i], 'value': options[i]} for i in range(len(options))] + [{'label':'All','value':'All'}]
 
 app = dash.Dash(__name__)
 server = app.server
@@ -36,7 +36,7 @@ app.layout = html.Div(children=
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H6('Versión Alpha 1.2.1',),
+                        html.H6('Versión Alpha 1.2.2',),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
@@ -201,6 +201,8 @@ app.layout = html.Div(children=
                     ],
                     className="pretty_container"),
                 html.Div( [
+                    html.Div(
+                        [
                         dcc.Checklist(
                             id='show_total_7',
                             options=[
@@ -209,13 +211,21 @@ app.layout = html.Div(children=
                             className="dcc_control"
                         ),
                         dcc.Loading(id = "loading-icon-7", children=[dcc.Graph(id='fig_7')], type="circle"),
-                ],id='div_7',className="pretty_container")
+                        ],className="pretty_container"
+                    )
+                ],id='div_7')
                 ],className="eight columns")
         ], className='row'),
         html.Div(
             [
                 html.Div(
                     [
+                        dcc.Dropdown(
+                            id='dropdown_6',
+                            options=b,
+                            value=['1M', '12M','5Y'],
+                            multi=True
+                        ), 
                         dcc.Checklist(
                             id='cumulative_2',
                             options=[
@@ -440,9 +450,10 @@ def update_graph_1(producto,periodo,fecha, usd, uf,tenor_slider_1,show_total):#o
      Input(component_id='fecha', component_property='value'),
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
-     Input(component_id='cumulative_2', component_property='value')]
+     Input(component_id='cumulative_2', component_property='value'),
+    Input(component_id='dropdown_6', component_property='value')]
 )
-def update_graph_2(producto,periodo,fecha, usd, uf,cumulative_2):
+def update_graph_2(producto,periodo,fecha, usd, uf,cumulative_2,tenors):
     usd = int(usd)
     uf = int(uf)
     fecha = datetime.strptime(fecha, '%Y-%m-%d')
@@ -451,7 +462,7 @@ def update_graph_2(producto,periodo,fecha, usd, uf,cumulative_2):
         if len(cumulative_2)!=0:
             flag = True
 
-    fig = api.general_graph(producto=producto, tenor='All', start_date=fecha,period=periodo,usd=usd, uf=uf, cumulative = flag)
+    fig = api.general_graph(producto=producto, tenors=tenors, start_date=fecha,period=periodo,usd=usd, uf=uf, cumulative = flag)
 
     return fig
 
@@ -562,7 +573,9 @@ def upgrade_div_7(producto,fecha):
     if producto == 'NDF_USD_CLP':
         fecha = datetime.strptime(fecha, '%Y-%m-%d')
         fig = api.graph_ndf_index(fecha)
-        return  [
+        return   [
+                    html.Div(
+                        [
                         dcc.Checklist(
                             id='show_total_7',
                             options=[
@@ -571,8 +584,9 @@ def upgrade_div_7(producto,fecha):
                             className="dcc_control"
                         ),
                         dcc.Loading(id = "loading-icon-7", children=[dcc.Graph(id='fig_7',figure=fig)], type="circle"),
+                        ],className="pretty_container"
+                    )
                 ]
-    else:
         return []
 
 
