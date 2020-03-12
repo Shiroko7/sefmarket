@@ -36,7 +36,7 @@ app.layout = html.Div(children=
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H6('Versión Alpha 1.2.4',),
+                        html.H6('Versión Alpha 1.2.5',),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
@@ -56,6 +56,7 @@ app.layout = html.Div(children=
                                     {'label': 'UF CAMARA', 'value': 'CLF_CAM'},
                                     {'label': 'BASIS SWAP', 'value': 'BASIS'}
                                 ],
+                                clearable=False,
                                 value='CLP_CAM',             
                             ),                        
                             html.Label('Periodo',className="control_label"),
@@ -66,77 +67,82 @@ app.layout = html.Div(children=
                                     {'label': 'Semanal', 'value': 'WEEKLY'},
                                     #{'label': 'Mensual', 'value': 'MONTHLY'},
                                 ],
+                                clearable=False,
                                 value='DAILY',             
                             ),
-                            html.Label('Fecha de inicio',className="control_label"),
-                            dcc.DatePickerSingle(
-                                id='start_date',
+                        html.Label('Seleccionar rango de data',className="control_label"),
+                        dcc.DatePickerRange(
+                                id='daterange',
+                                first_day_of_week=1,
                                 min_date_allowed=datetime(2020, 1, 3),
-                                max_date_allowed=today,
+                                max_date_allowed=today+timedelta(days=1),
                                 initial_visible_month=today,
-                                date=datetime(2020, 1, 3),
-                                display_format='Do MMM, YY'
-                            ),
-                            html.Label('Fecha de termino',className="control_label"),
-                            dcc.DatePickerSingle(
-                                id='end_date',
-                                min_date_allowed=datetime(2020, 1, 3),
-                                max_date_allowed=today,
-                                initial_visible_month=today,
-                                date=today,
-                                display_format='Do MMM, YY'
-                            ),
+                                start_date=datetime(2020, 1, 3),
+                                end_date=today,
+                                display_format='Do MMM, YY',
+                        ),
                         ], className = "pretty_container"),
+
                     html.Div(
                         [
                             html.Div(
                                 [
-                                    html.Div([html.Label('USD'),dcc.Input(id='usd', value='850', type='number',style={'text-align':'right'})]),
-                                    html.Div([html.Label('UF'),dcc.Input(id='uf', value='28500', type='number',style={'text-align':'right'})]),
-                                ], className = 'pretty_container', 
-                            )
+                                    html.Label('USD'),
+                                    html.Label('UF')
+                                ],style={'margin':'10px'}
+                            ),
 
-                        ],className="row"
+                            html.Div(
+                                [
+                                    dcc.Input(id='usd', value='850', type='number',style={'text-align':'right'}),
+                                    dcc.Input(id='uf', value='28500', type='number',style={'text-align':'right'})
+                                ],style={'margin-left':'20px'}
+                            ),
+                        ],className="row pretty_container"
                     ),
-                            
-                    dash_table.DataTable(
-                            id='table',
-                            style_table = {
-                                'box-sizing': 'border-box',
-                                'overflowX': 'scroll'
-                            },
-                            style_header={
-                                'fontWeight': 'bold',
-                                'textAlign': 'center'
-                            },
-                            style_cell_conditional=[
-                                {
-                                    'if': {'column_id': 'Tenor'},
-                                    'textAlign': 'left'
-                                }
-                            ],
-                            style_data_conditional=[
-                                {
-                                    'if': {'row_index': 'odd'},
-                                    'backgroundColor': 'rgb(251, 251, 251)'
-                                },
-                                {
-                                    'if': {
-                                        'column_id': 'Zs',
-                                        'filter_query': '{Zs} > 0.0'
+                    dcc.Loading(
+                        [
+                            dash_table.DataTable(
+                                    id='table',
+                                    style_table = {
+                                        'box-sizing': 'border-box',
+                                        'overflowX': 'scroll'
                                     },
-                                    'color': 'green',
-                                },
-                                {
-                                    'if': {
-                                        'column_id': 'Zs',
-                                        'filter_query': '{Zs} < 0.0'
+                                    style_header={
+                                        'fontWeight': 'bold',
+                                        'textAlign': 'center'
                                     },
-                                    'color': 'red',
-                                },
-                            ],
-                            merge_duplicate_headers=True,
-                        ),
+                                    style_cell_conditional=[
+                                        {
+                                            'if': {'column_id': 'Tenor'},
+                                            'textAlign': 'left'
+                                        }
+                                    ],
+                                    style_data_conditional=[
+                                        {
+                                            'if': {'row_index': 'odd'},
+                                            'backgroundColor': 'rgb(251, 251, 251)'
+                                        },
+                                        {
+                                            'if': {
+                                                'column_id': 'Zs',
+                                                'filter_query': '{Zs} > 0.0'
+                                            },
+                                            'color': 'green',
+                                        },
+                                        {
+                                            'if': {
+                                                'column_id': 'Zs',
+                                                'filter_query': '{Zs} < 0.0'
+                                            },
+                                            'color': 'red',
+                                        },
+                                    ],
+                                    merge_duplicate_headers=True,
+                                ),
+                        ],
+                        id = "loading-icon-0", type="dot"
+                    ),
                 ],className="four columns"
             ),
 
@@ -230,7 +236,7 @@ app.layout = html.Div(children=
                         dcc.Dropdown(
                             id='dropdown_6',
                             options=b,
-                            value=['1M', '12M','5Y'],
+                            value=['All'],
                             multi=True
                         ), 
                         dcc.Checklist(
@@ -248,7 +254,7 @@ app.layout = html.Div(children=
                         dcc.Dropdown(
                             id='dropdown_5',
                             options=b,
-                            value=['1M', '12M','5Y'],
+                            value=['1M', '12M','5Y','All'],
                             multi=True
                         ), 
                         dcc.Checklist(
@@ -421,7 +427,8 @@ def update_output(value):#,options):
     Output(component_id='fig_1', component_property='figure'),
     [Input(component_id='producto', component_property='value'),
      Input(component_id='periodo', component_property='value'),
-     Input(component_id='start_date', component_property='date'),
+     Input(component_id='daterange', component_property='start_date'),
+     Input(component_id='daterange', component_property='end_date'),
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
      Input(component_id='tenor_slider_1', component_property='value'),
@@ -429,10 +436,11 @@ def update_output(value):#,options):
      #Input(component_id='options',component_property='children')
      ],
 )
-def update_graph_1(producto,periodo,start_date, usd, uf,tenor_slider_1,show_total):#options):
+def update_graph_1(producto,periodo,start_date,end_date, usd, uf,tenor_slider_1,show_total):#options):
     usd = int(usd)
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
+    end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
     #options = json.loads(options)
     #a = {i:options[i] for i in range(len(options))}
     tenors = (a[tenor_slider_1[0]],a[tenor_slider_1[1]])
@@ -443,7 +451,7 @@ def update_graph_1(producto,periodo,start_date, usd, uf,tenor_slider_1,show_tota
             flag = True
         
     #start = time.time()
-    fig = api.box_plot_all(producto=producto,start_date=start_date,period=periodo,tenor_range=tenors,usd=usd,uf=uf,show_total=flag)
+    fig = api.box_plot_all(producto=producto,start_date=start_date,end_date=end_date,period=periodo,tenor_range=tenors,usd=usd,uf=uf,show_total=flag)
     #end = time.time()
     
     #print("overall time: " + str(producto), end - start)
@@ -454,29 +462,32 @@ def update_graph_1(producto,periodo,start_date, usd, uf,tenor_slider_1,show_tota
     Output(component_id='fig_2', component_property='figure'),
     [Input(component_id='producto', component_property='value'),
      Input(component_id='periodo', component_property='value'),
-     Input(component_id='start_date', component_property='date'),
+     Input(component_id='daterange', component_property='start_date'),
+     Input(component_id='daterange', component_property='end_date'),
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
      Input(component_id='cumulative_2', component_property='value'),
     Input(component_id='dropdown_6', component_property='value')]
 )
-def update_graph_2(producto,periodo,start_date, usd, uf,cumulative_2,tenors):
+def update_graph_2(producto,periodo,start_date,end_date, usd, uf,cumulative_2,tenors):
     usd = int(usd)
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
+    end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
     flag = False
     if cumulative_2 is not None:
         if len(cumulative_2)!=0:
             flag = True
 
-    fig = api.general_graph(producto=producto, tenors=tenors, start_date=start_date,period=periodo,usd=usd, uf=uf, cumulative = flag)
+    fig = api.general_graph(producto=producto, tenors=tenors, start_date=start_date,end_date=end_date,period=periodo,usd=usd, uf=uf, cumulative = flag)
 
     return fig
 
 @app.callback(
     Output(component_id='fig_3', component_property='figure'),
     [Input(component_id='producto', component_property='value'),
-     Input(component_id='start_date', component_property='date'),
+     Input(component_id='daterange', component_property='start_date'),
+     Input(component_id='daterange', component_property='end_date'),
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
      Input(component_id='tenor_slider_3', component_property='value'),
@@ -484,14 +495,15 @@ def update_graph_2(producto,periodo,start_date, usd, uf,cumulative_2,tenors):
      ],
      
 )
-def update_graph_3(producto,start_date, usd, uf,tenor_slider_3):#,options):
+def update_graph_3(producto,start_date, end_date, usd, uf,tenor_slider_3):#,options):
     usd = int(usd)
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
+    end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
     #options = json.loads(options)
     #a = {i:options[i] for i in range(len(options))}
     tenor_slider_3 = (a[tenor_slider_3[0]],a[tenor_slider_3[1]])
-    fig = api.participation_graph(producto=producto, start_date=start_date, tenor_range=tenor_slider_3,usd=usd, uf=uf)
+    fig = api.participation_graph(producto=producto, start_date=start_date,end_date=end_date, tenor_range=tenor_slider_3,usd=usd, uf=uf)
 
     return fig
 
@@ -499,7 +511,8 @@ def update_graph_3(producto,start_date, usd, uf,tenor_slider_3):#,options):
 @app.callback(
     Output(component_id='fig_4', component_property='figure'),
     [Input(component_id='producto', component_property='value'),
-     Input(component_id='start_date', component_property='date'),
+     Input(component_id='daterange', component_property='start_date'),
+     Input(component_id='daterange', component_property='end_date'),
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
      Input(component_id='tenor_slider_4',component_property='value'),
@@ -507,10 +520,11 @@ def update_graph_3(producto,start_date, usd, uf,tenor_slider_3):#,options):
      #Input(component_id='options',component_property='children')
      ]
 )
-def update_graph_4(producto,start_date, usd, uf, tenor_slider_4,porcentaje_4):#,options):
+def update_graph_4(producto,start_date,end_date, usd, uf, tenor_slider_4,porcentaje_4):#,options):
     usd = int(usd)
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
+    end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
     #options = json.loads(options)
     #a = {i:options[i] for i in range(len(options))}
     tenor_slider_4 =  (a[tenor_slider_4[0]],a[tenor_slider_4[1]])
@@ -518,7 +532,7 @@ def update_graph_4(producto,start_date, usd, uf, tenor_slider_4,porcentaje_4):#,
     if porcentaje_4 is not None:
         if len(porcentaje_4) != 0:
             flag = True
-    fig = api.participation_graph_by_date(producto=producto, start_date=start_date,tenor_range=tenor_slider_4,usd=usd, uf=uf,percent=flag)
+    fig = api.participation_graph_by_date(producto=producto, start_date=start_date,end_date=end_date,tenor_range=tenor_slider_4,usd=usd, uf=uf,percent=flag)
 
     return fig
 
@@ -526,29 +540,31 @@ def update_graph_4(producto,start_date, usd, uf, tenor_slider_4,porcentaje_4):#,
     Output(component_id='fig_5', component_property='figure'),
     [Input(component_id='producto', component_property='value'),
      Input(component_id='periodo', component_property='value'),
-     Input(component_id='start_date', component_property='date'),
+     Input(component_id='daterange', component_property='start_date'),
+     Input(component_id='daterange', component_property='end_date'),
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
      Input(component_id='cumulative_5', component_property='value'),
      Input(component_id='dropdown_5', component_property='value')]
 )
-def update_graph_5(producto,periodo,start_date, usd, uf,cumulative_5,dropdown_5):
+def update_graph_5(producto,periodo,start_date,end_date, usd, uf,cumulative_5,dropdown_5):
     usd = int(usd)
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
-    #print("start:" + str(producto))
+    end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
     flag = False
     if cumulative_5 is not None:
         if len(cumulative_5)!=0:
             flag = True
-    fig = api.tenor_graph(producto=producto, tenors=dropdown_5,start_date=start_date,period=periodo,usd=usd, uf=uf, cumulative = flag)
+    fig = api.tenor_graph(producto=producto, tenors=dropdown_5,start_date=start_date,end_date=end_date,period=periodo,usd=usd, uf=uf, cumulative = flag)
 
     return fig
 
 @app.callback(
     Output(component_id='fig_6', component_property='figure'),
     [Input(component_id='producto', component_property='value'),
-     Input(component_id='start_date', component_property='date'),
+     Input(component_id='daterange', component_property='start_date'),
+     Input(component_id='daterange', component_property='end_date'),
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
      Input(component_id='tenor_slider_6', component_property='value'),
@@ -556,10 +572,11 @@ def update_graph_5(producto,periodo,start_date, usd, uf,cumulative_5,dropdown_5)
     #Input(component_id='options',component_property='children')
     ],
 )
-def update_graph_6(producto,start_date, usd, uf,tenor_slider_6,show_total_6):#,options):
+def update_graph_6(producto,start_date,end_date, usd, uf,tenor_slider_6,show_total_6):#,options):
     usd = int(usd)
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
+    end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
     #options = json.loads(options)
     #a = {i:options[i] for i in range(len(options))}
     tenors = (a[tenor_slider_6[0]],a[tenor_slider_6[1]])
@@ -567,19 +584,21 @@ def update_graph_6(producto,start_date, usd, uf,tenor_slider_6,show_total_6):#,o
     if show_total_6 is not None:
         if len(show_total_6)!=0:
             flag = True
-    fig = api.bar_by_tenor(producto=producto,start_date=start_date,tenor_range=tenors,usd=usd,uf=uf,show_total=flag)
+    fig = api.bar_by_tenor(producto=producto,start_date=start_date,end_date=end_date,tenor_range=tenors,usd=usd,uf=uf,show_total=flag)
     return fig
 
 @app.callback(
     Output('div_7','children'),    
     [Input('producto','value'),
-    Input('start_date','date')]
+    Input('daterange','start_date'),
+    Input('daterange','end_date')]
 )
 
-def upgrade_div_7(producto,start_date):
+def upgrade_div_7(producto,start_date,end_date):
     if producto == 'NDF_USD_CLP':
         start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
-        fig = api.graph_ndf_index(start_date)
+        end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
+        fig = api.graph_ndf_index(start_date,end_date)
         return   [
                     html.Div(
                         [
@@ -600,17 +619,19 @@ def upgrade_div_7(producto,start_date):
 @app.callback(
     Output('fig_7','figure'),
     [Input('producto','value'),
-    Input('start_date','date'),
+    Input('daterange','start_date'),
+    Input('daterange','end_date'),
     Input('show_total_7','value')]
 )
-def upgrade_graph_7(producto,start_date,show_total_7):
+def upgrade_graph_7(producto,start_date,end_date,show_total_7):
     if producto  == 'NDF_USD_CLP':
         flag = False
         if show_total_7 is not None:
             if len(show_total_7)!=0:
                 flag = True
         start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
-        fig = api.graph_ndf_index(start_date,flag)
+        end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
+        fig = api.graph_ndf_index(start_date,end_date,flag)
         return fig
     else:
         return {}
@@ -620,16 +641,19 @@ def upgrade_graph_7(producto,start_date,show_total_7):
     Output(component_id='table', component_property='columns'),
     Output(component_id='table', component_property='style_data_conditional')],
     [Input(component_id='producto', component_property='value'),
-     Input(component_id='start_date', component_property='date'),
+     Input(component_id='periodo', component_property='value'),
+     Input(component_id='daterange', component_property='start_date'),
+     Input(component_id='daterange', component_property='end_date'),
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value')],
     [State(component_id='table', component_property='style_data_conditional')]
 )
-def update_table(producto,start_date, usd, uf, styles):
+def update_table(producto,period,start_date,end_date, usd, uf, styles):
     usd = int(usd)
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
-    df = api.informe(producto = producto, start_date = start_date, period = 'DAILY', usd = usd, uf = uf)
+    end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
+    df = api.informe(producto = producto, start_date = start_date, end_date=end_date, period = period, usd = usd, uf = uf)
     if producto != 'NDF_USD_CLP':
         cols = [
                 {"name": ['','Tenor'], 'id':"Tenor"},

@@ -477,7 +477,7 @@ styles = [
   dict(selector="td", props=td_props)
   ]
 
-def informe_v1(producto,start_date,period,usd,uf=1):
+def informe_v1(producto,start_date,end_date,period,usd,uf=1):
     if start_date == None:
         return None
     #BILLONES CLP
@@ -506,21 +506,17 @@ def informe_v1(producto,start_date,period,usd,uf=1):
         dfi =  pd.DataFrame([[i,0,0,0,0,0,0,0]],columns = cols)
         empty_df = empty_df.append(dfi)
     
-    #calcular fecha desde hoy
-    today = date.today()
-    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
-    today = today - shift
     if period == 'WEEKLY':
         #last_monday = start_date - timedelta(days=start_date.weekday())
         #coming_monday = start_date + timedelta(days=-start_date.weekday(), weeks=1)
         #start_date = min([last_monday,coming_monday], key=lambda x: abs(x - start_date))
         start_date = start_date + timedelta(days=-start_date.weekday(), weeks=1)
-        today = today - timedelta(days=today.weekday()) - timedelta(days=3)
+        end_date = end_date - timedelta(days=end_date.weekday()) - timedelta(days=3)
 
     #print("Generando tabla...")
     #clear_output(wait=False)
     #cargar data historica y pasar a dv01
-    historic_df = daily_change(producto,start_date,today)
+    historic_df = daily_change(producto,start_date,end_date)
     historic_df = historic_df.fillna(0)
         
     #pasar a DV01
@@ -553,9 +549,7 @@ def informe_v1(producto,start_date,period,usd,uf=1):
     historic_df['Date'] = pd.to_datetime(historic_df['Date'])
 
     #hacer un BIG FILL
-    historic_df = fill_df(historic_df,start_date,today)
-    
-
+    historic_df = fill_df(historic_df,start_date,end_date)
 
     if period == 'DAILY':
         historic_mean = historic_df.groupby('Date').agg({'Volume':'sum'}).reset_index()['Volume'].mean()
@@ -584,7 +578,7 @@ def informe_v1(producto,start_date,period,usd,uf=1):
         
     #cargar data a comparar
     if period == 'DAILY':
-        period_volume_df = query_by_date(producto,today)
+        period_volume_df = query_by_date(producto,end_date)
         if not period_volume_df.empty:
             period_volume_df = period_volume_df.groupby(['Tenor']).agg({'Volume':'sum'}).reset_index()
             period_df = volume_to_dv01(period_volume_df,usd,uf,duration,l)
@@ -593,8 +587,8 @@ def informe_v1(producto,start_date,period,usd,uf=1):
             period_df = empty_df[['Tenor','Volume']]
     elif period == 'WEEKLY':
         #esta definido como días habiles desde hoy
-        offset_days = pd.date_range(start=today-timedelta(days=6), end=today, freq='B').date[0]
-        period_volume_df = daily_change(producto,offset_days,today)
+        offset_days = pd.date_range(start=end_date-timedelta(days=6), end=end_date, freq='B').date[0]
+        period_volume_df = daily_change(producto,offset_days,end_date)
         if not period_volume_df.empty:
             period_volume_df = period_volume_df.groupby(['Tenor']).agg({'Volume':'sum'}).reset_index()
             period_df = volume_to_dv01(period_volume_df,usd,uf,duration,l)
@@ -603,8 +597,8 @@ def informe_v1(producto,start_date,period,usd,uf=1):
             period_df = empty_df[['Tenor','Volume']]
     elif period == 'MONTHLY':
         #esta definido como días habiles desde hoy
-        offset_days = pd.date_range(start=today-timedelta(days=31), end=today, freq='B').date[0]        
-        period_volume_df = daily_change(producto,offset_days,today)
+        offset_days = pd.date_range(start=end_date-timedelta(days=31), end=end_date, freq='B').date[0]        
+        period_volume_df = daily_change(producto,offset_days,end_date)
         if not period_volume_df.empty:
             period_volume_df = period_volume_df.groupby(['Tenor']).agg({'Volume':'sum'}).reset_index()
             period_df = volume_to_dv01(period_volume_df,usd,uf,duration,l)
@@ -659,24 +653,19 @@ def informe_v1(producto,start_date,period,usd,uf=1):
     #print("End Date:" + str(today))
     return df
 
-def informe_ndf(start_date, period):
+def informe_ndf(start_date,end_date, period):
     if start_date == None:
         return None
         
     #crear df con todos los tenors
     cols = ['Tenor','Volume','SD','Mean','Highest','Days Traded','Percent']
 
-    #calcular fecha desde hoy
-    today = date.today()
-    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
-    today = today - shift
-    
     if period == 'WEEKLY':
         #last_monday = start_date - timedelta(days=start_date.weekday())
         #coming_monday = start_date + timedelta(days=-start_date.weekday(), weeks=1)
         #start_date = min([last_monday,coming_monday], key=lambda x: abs(x - start_date))
         start_date = start_date + timedelta(days=-start_date.weekday(), weeks=1)
-        today = today - timedelta(days=today.weekday()) - timedelta(days=3)
+        end_date = end_date - timedelta(days=end_date.weekday()) - timedelta(days=3)
         
     #print("Generando tabla...")
     #print("Producto: NDF_USD_CLP")
@@ -684,7 +673,7 @@ def informe_ndf(start_date, period):
     #print("End Date:" + str(today))
 
     #cargar data historica 
-    historic_df = daily_change('NDF_USD_CLP',start_date,today)
+    historic_df = daily_change('NDF_USD_CLP',start_date,end_date)
     historic_df = historic_df.fillna(0)
     
     #date to datetime
@@ -713,7 +702,7 @@ def informe_ndf(start_date, period):
     historic_df['Date'] = pd.to_datetime(historic_df['Date'])
 
     #hacer un BIG FILL
-    historic_df = fill_df(historic_df,start_date,today)
+    historic_df = fill_df(historic_df,start_date,end_date)
     
     if period == 'DAILY':
         historic_mean = historic_df.groupby('Date').agg({'Volume':'sum'}).reset_index()['Volume'].mean()
@@ -742,19 +731,19 @@ def informe_ndf(start_date, period):
     
     #cargar data a comparar
     if period == 'DAILY':
-        period_volume_df = query_by_date('NDF_USD_CLP',today)
+        period_volume_df = query_by_date('NDF_USD_CLP',end_date)
         period_volume_df = period_volume_df.groupby(['Tenor']).agg({'Volume':'sum'}).reset_index()
 
     elif period == 'WEEKLY':
         #esta definido como días habiles desde hoy
-        offset_days = pd.date_range(start=today-timedelta(days=6), end=today, freq='B').date[0]
-        period_volume_df = daily_change('NDF_USD_CLP',offset_days,today)
+        offset_days = pd.date_range(start=end_date-timedelta(days=6), end=end_date, freq='B').date[0]
+        period_volume_df = daily_change('NDF_USD_CLP',offset_days,end_date)
         period_volume_df = period_volume_df.groupby(['Tenor']).agg({'Volume':'sum'}).reset_index()
 
     elif period == 'MONTHLY':
         #esta definido como días habiles desde hoy
-        offset_days = pd.date_range(start=today-timedelta(days=31), end=today, freq='B').date[0]        
-        period_volume_df = daily_change('NDF_USD_CLP',offset_days,today)
+        offset_days = pd.date_range(start=end_date-timedelta(days=31), end=end_date, freq='B').date[0]        
+        period_volume_df = daily_change('NDF_USD_CLP',offset_days,end_date)
         period_volume_df = period_volume_df.groupby(['Tenor']).agg({'Volume':'sum'}).reset_index()
     
     else:
@@ -802,11 +791,11 @@ def informe_ndf(start_date, period):
     return df
 
 
-def informe(producto, start_date, period, usd, uf):
+def informe(producto, start_date,end_date, period, usd, uf):
     if producto != 'NDF_USD_CLP':
-        df = informe_v1(producto,start_date,period,usd,uf)
+        df = informe_v1(producto,start_date,end_date,period,usd,uf)
     else:
-        df = informe_ndf(start_date,period)
+        df = informe_ndf(start_date,end_date,period)
     df = df.rename(columns={'SD': 'Zs','Days Traded':'Trades'})
     df = df.reset_index(drop=False)
     return df
@@ -837,10 +826,10 @@ def values_product(producto,usd,uf):
         uf = 1
     return usd,uf,duration,l
 
-def get_historic(producto,start_date,today,period,tenor_range=None,usd=1,uf=1,duration=None,l=1):
+def get_historic(producto,start_date,end_date,period,tenor_range=None,usd=1,uf=1,duration=None,l=1):
     #get data
     start = datetime.now()
-    df = query_by_daterange(producto, start_date,today)
+    df = query_by_daterange(producto, start_date,end_date)
     end  = datetime.now()
     #print("query_by_daterange time:", (end-start).seconds)
     
@@ -859,7 +848,7 @@ def get_historic(producto,start_date,today,period,tenor_range=None,usd=1,uf=1,du
     #date to datetime
     df = df.reset_index(drop=True)
     df['Date'] = pd.to_datetime(df['Date'])
-    df = fill_df(df,start_date,today)
+    df = fill_df(df,start_date,end_date)
 
     if period == 'DAILY':
         df = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
@@ -870,41 +859,41 @@ def get_historic(producto,start_date,today,period,tenor_range=None,usd=1,uf=1,du
         
     return df
         
-def get_specific(producto,start_date,today,period,tenor_range=None,usd=1,uf=1,duration=None,l=1):
+def get_specific(producto,start_date,end_date,period,tenor_range=None,usd=1,uf=1,duration=None,l=1):
     #cargar data a comparar
     if period == 'DAILY':
-        period_df = query_by_date(producto,today)
+        period_df = query_by_date(producto,end_date)
         if period_df.empty:
-            period_df = pd.DataFrame([['0Y',0,today]],columns = ['Tenor','Volume','Date'])
+            period_df = pd.DataFrame([['0Y',0,end_date]],columns = ['Tenor','Volume','Date'])
         period_df = period_df.reset_index(drop=True)
         period_df['Date'] = pd.to_datetime(period_df['Date'])
-        period_df = fill_df(period_df,today,today)
+        period_df = fill_df(period_df,end_date,end_date)
 
     elif period == 'WEEKLY':
         #last_monday = start_date - timedelta(days=start_date.weekday())
         #coming_monday = start_date + timedelta(days=-start_date.weekday(), weeks=1)
         #start_date = min([last_monday,coming_monday], key=lambda x: abs(x - start_date))
         start_date = start_date + timedelta(days=-start_date.weekday(), weeks=1)   
-        today = today - timedelta(days=start_date.weekday()) - timedelta(days=3)
+        end_date = end_date - timedelta(days=start_date.weekday()) - timedelta(days=3)
         
         #esta definido como días habiles desde hoy
-        offset_days = pd.date_range(start=today-timedelta(days=6), end=today, freq='B').date[0]
-        period_df = query_by_daterange(producto,offset_days,today)
+        offset_days = pd.date_range(start=end_date-timedelta(days=6), end=end_date, freq='B').date[0]
+        period_df = query_by_daterange(producto,offset_days,end_date)
         if period_df.empty:
-            period_df = pd.DataFrame([['0Y',0,today]],columns = ['Tenor','Volume','Date'])
+            period_df = pd.DataFrame([['0Y',0,end_date]],columns = ['Tenor','Volume','Date'])
         period_df = period_df.reset_index(drop=True)
         period_df['Date'] = pd.to_datetime(period_df['Date'])
-        period_df = fill_df(period_df,offset_days,today)
+        period_df = fill_df(period_df,offset_days,end_date)
 
     elif period == 'MONTHLY':
         #esta definido como días habiles desde hoy
-        offset_days = pd.date_range(start=today-timedelta(days=31), end=today, freq='B').date[0]        
-        period_df = query_by_daterange(producto,offset_days,today)
+        offset_days = pd.date_range(start=end_date-timedelta(days=31), end=end_date, freq='B').date[0]        
+        period_df = query_by_daterange(producto,offset_days,end_date)
         if period_df.empty:
-            period_df = pd.DataFrame([['0Y',0,today]],columns = ['Tenor','Volume','Date'])
+            period_df = pd.DataFrame([['0Y',0,end_date]],columns = ['Tenor','Volume','Date'])
         period_df = period_df.reset_index(drop=True)
         period_df['Date'] = pd.to_datetime(period_df['Date'])
-        period_df = fill_df(period_df,offset_days,today)
+        period_df = fill_df(period_df,offset_days,end_date)
         
     #usar tenors en rango
     if tenor_range is not None:
@@ -921,25 +910,26 @@ def get_specific(producto,start_date,today,period,tenor_range=None,usd=1,uf=1,du
 
 
 
-def box_plot_all(producto,start_date,period,tenor_range=None,usd=1,uf=1,show_total=False):
-    #definir today (ayer)
-    today = date.today()
-    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
-    today = today - shift
-    
+def box_plot_all(producto,start_date,end_date,period,tenor_range=None,usd=1,uf=1,show_total=False):
+
     usd,uf,duration,l = values_product(producto,usd,uf)
     
     #start = datetime.now()
-    df = get_historic(producto,start_date,today,period,tenor_range,usd,uf,duration,l)
+    df = get_historic(producto,start_date,end_date,period,tenor_range,usd,uf,duration,l)
     #end = datetime.now()
     #print('get_historic time: ',(end-start).seconds)
 
     #start = datetime.now()
-    period_df = get_specific(producto,start_date,today,period,tenor_range,usd,uf,duration,l)
+    period_df = get_specific(producto,start_date,end_date,period,tenor_range,usd,uf,duration,l)
     #end = datetime.now()
     #print('get_specific time: ',(end-start).seconds)
 
-
+    if period == 'WEEKLY':
+        #last_monday = start_date - timedelta(days=start_date.weekday())
+        #coming_monday = start_date + timedelta(days=-start_date.weekday(), weeks=1)
+        #start_date = min([last_monday,coming_monday], key=lambda x: abs(x - start_date))
+        start_date = start_date + timedelta(days=-start_date.weekday(), weeks=1)
+        end_date = end_date - timedelta(days=end_date.weekday()) - timedelta(days=3)
     #start = datetime.now()
     if show_total:
     #Agregar total
@@ -997,11 +987,11 @@ def box_plot_all(producto,start_date,period,tenor_range=None,usd=1,uf=1,show_tot
     
     
     #formatear fecha
-    if start_date.year == today.year:
+    if start_date.year == end_date.year:
         start_date = start_date.strftime('%d %B')
     else:
         start_date = start_date.strftime('%d %B %Y')
-    today = today.strftime('%d %B %Y')
+    end_date = end_date.strftime('%d %B %Y')
 
     
     # Add range slider
@@ -1016,23 +1006,18 @@ def box_plot_all(producto,start_date,period,tenor_range=None,usd=1,uf=1,show_tot
     if producto != 'NDF_USD_CLP':
         fig.update_layout(xaxis={'title': producto},
                           yaxis={'title':'DV01'},
-                          title= str(period)+ ' Distribution ' + producto+': '+str(start_date)+' to '+str(today))
+                          title= str(period)+ ' Distribution ' + producto+': '+str(start_date)+' to '+str(end_date))
     else:
         fig.update_layout(xaxis={'title': producto},
                           yaxis={'title':'Volume'},
-                          title= str(period)+ ' Distribution ' + producto+': '+str(start_date)+' to '+str(today))        
+                          title= str(period)+ ' Distribution ' + producto+': '+str(start_date)+' to '+str(end_date))        
     
     #fig.show()
     #end = datetime.now()
     #print('boxploting time: ', (end-start).seconds)
     return fig
 
-def general_graph(producto, tenors, start_date,period,usd=770, uf=1, cumulative = False):
-    #definir today (ayer)
-    today = date.today()
-    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
-    today = today - shift
-    
+def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, cumulative = False):    
     usd,uf,duration,l = values_product(producto,usd,uf)
     
     if period == 'WEEKLY':
@@ -1040,15 +1025,15 @@ def general_graph(producto, tenors, start_date,period,usd=770, uf=1, cumulative 
         #coming_monday = start_date + timedelta(days=-start_date.weekday(), weeks=1)
         #start_date = min([last_monday,coming_monday], key=lambda x: abs(x - start_date))
         start_date = start_date + timedelta(days=-start_date.weekday(), weeks=1)
-        today = today - timedelta(days=today.weekday()) - timedelta(days=3)
+        end_date = end_date - timedelta(days=end_date.weekday()) - timedelta(days=3)
 
-    df = daily_change(producto, start_date, today)
+    df = daily_change(producto, start_date, end_date)
     #date to datetime
 
     df = df.reset_index(drop=True)
     df['Date'] = pd.to_datetime(df['Date'])
     #hacer un BIG FILL
-    df = fill_df(df,start_date,today)
+    df = fill_df(df,start_date,end_date)
     
     if period == 'DAILY':
         df = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
@@ -1090,7 +1075,7 @@ def general_graph(producto, tenors, start_date,period,usd=770, uf=1, cumulative 
                         type="line",
                         x0=df['Date'][0],
                         y0=y_.mean(),
-                        x1=today,
+                        x1=end_date,
                         y1=y_.mean(),
                         line=dict(
                             color="darkblue",
@@ -1099,11 +1084,11 @@ def general_graph(producto, tenors, start_date,period,usd=770, uf=1, cumulative 
                         ),
                 ))
         #formatear fecha
-        if start_date.year == today.year:
+        if start_date.year == end_date.year:
             start_date = start_date.strftime('%d %B')
         else:
             start_date = start_date.strftime('%d %B %Y')
-        today = today.strftime('%d %B %Y')
+        end_date = end_date.strftime('%d %B %Y')
         fig.update_layout(xaxis={'title':' '.join(tenors)},
                           yaxis={'title':'DV01'})
         
@@ -1135,7 +1120,7 @@ def general_graph(producto, tenors, start_date,period,usd=770, uf=1, cumulative 
                         type="line",
                         x0=df['Date'][0],
                         y0=y_.mean(),
-                        x1=today,
+                        x1=end_date,
                         y1=y_.mean(),
                         line=dict(
                             color="darkblue",
@@ -1145,11 +1130,11 @@ def general_graph(producto, tenors, start_date,period,usd=770, uf=1, cumulative 
                 ))
 
         #formatear fecha
-        if start_date.year == today.year:
+        if start_date.year == end_date.year:
             start_date = start_date.strftime('%d %B')
         else:
             start_date = start_date.strftime('%d %B %Y')
-        today = today.strftime('%d %B %Y')
+        end_date = end_date.strftime('%d %B %Y')
         
         fig.update_layout(xaxis={'title':' '.join(tenors)},
                           yaxis={'title':'Volume'})
@@ -1166,16 +1151,12 @@ def general_graph(producto, tenors, start_date,period,usd=770, uf=1, cumulative 
     
     return fig
 
-def participation_graph(producto, start_date, tenor_range,usd=770, uf=1):
-    #definir today (ayer)
-    today = date.today()
-    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
-    today = today - shift
-    
+def participation_graph(producto, start_date, end_date, tenor_range,usd=770, uf=1):
+
     usd,uf,duration,l = values_product(producto,usd,uf)
     
     #cargar data
-    df = query_by_daterange(producto, start_date, today)
+    df = query_by_daterange(producto, start_date, end_date)
     df = df.groupby(['Broker','Tenor']).agg({'Volume': 'sum'}).reset_index()
     
     #usar tenors en rango
@@ -1187,11 +1168,11 @@ def participation_graph(producto, start_date, tenor_range,usd=770, uf=1):
         return None
     
     #formatear fecha
-    if start_date.year == today.year:
+    if start_date.year == end_date.year:
         start_date = start_date.strftime('%d %B')
     else:
         start_date = start_date.strftime('%d %B %Y')
-    today = today.strftime('%d %B %Y')
+    end_date = end_date.strftime('%d %B %Y')
     if producto != 'NDF_USD_CLP':
         #pasar a DV01
         df = volume_to_dv01(df,usd,uf,duration,l)
@@ -1234,20 +1215,16 @@ def participation_graph(producto, start_date, tenor_range,usd=770, uf=1):
         fig.update_layout(barmode='stack',
                           xaxis={'title':'Broker','categoryorder':'total descending'},
                           yaxis={'title':'Volume'})
-    fig.update_layout(title= producto+' Market Share: '+start_date+' to '+today)
+    fig.update_layout(title= producto+' Market Share: '+start_date+' to '+end_date)
         
     return fig
 
 
-def participation_graph_by_date(producto, start_date,tenor_range=None,usd=770, uf=1,percent=False):
-    #definir today (ayer)
-    today = date.today()
-    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
-    today = today - shift
-    
+def participation_graph_by_date(producto, start_date, end_date,tenor_range=None,usd=770, uf=1,percent=False):
+
     usd,uf,duration,l = values_product(producto,usd,uf)
     
-    df = query_by_daterange(producto, start_date, today)
+    df = query_by_daterange(producto, start_date, end_date)
     #usar tenors en rango
     if tenor_range is not None:
         mask = df.apply(lambda row: in_date(row['Tenor'],tenor_range), axis=1)
@@ -1261,7 +1238,7 @@ def participation_graph_by_date(producto, start_date,tenor_range=None,usd=770, u
         df = df.reset_index(drop=True)
         df['Date'] = pd.to_datetime(df['Date'])
 
-        df = fill_df(df,start_date,today)
+        df = fill_df(df,start_date,end_date)
 
         #Agregar total
         
@@ -1294,11 +1271,11 @@ def participation_graph_by_date(producto, start_date,tenor_range=None,usd=770, u
                 fig.update_yaxes(range=[0, 100])
                 
         #formatear fecha
-        if start_date.year == today.year:
+        if start_date.year == end_date.year:
             start_date = start_date.strftime('%d %B')
         else:
             start_date = start_date.strftime('%d %B %Y')
-        today = today.strftime('%d %B %Y')
+        end_date = end_date.strftime('%d %B %Y')
         
         fig.update_layout(barmode='stack',
                       xaxis={'title':'Broker','categoryorder':'total descending'},
@@ -1308,7 +1285,7 @@ def participation_graph_by_date(producto, start_date,tenor_range=None,usd=770, u
         df = df.reset_index(drop=True)
         df['Date'] =  pd.to_datetime(df['Date'])
         
-        df = fill_df(df,start_date,today)
+        df = fill_df(df,start_date,end_date)
         #print(df.info())
 
         df = df.groupby(['Broker','Date']).agg({'Volume': 'sum'}).reset_index()
@@ -1343,11 +1320,11 @@ def participation_graph_by_date(producto, start_date,tenor_range=None,usd=770, u
                 fig.update_yaxes(range=[0, 100])
                 
         #formatear fecha
-        if start_date.year == today.year:
+        if start_date.year == end_date.year:
             start_date = start_date.strftime('%d %B')
         else:
             start_date = start_date.strftime('%d %B %Y')
-        today = today.strftime('%d %B %Y')
+        end_date = end_date.strftime('%d %B %Y')
         
         fig.update_layout(barmode='stack',
                       xaxis={'title':'Broker','categoryorder':'total descending'},
@@ -1356,12 +1333,8 @@ def participation_graph_by_date(producto, start_date,tenor_range=None,usd=770, u
     fig.update_layout(title= producto+' Market Share: ')
     return fig
 
-def tenor_graph(producto, tenors,start_date,period,usd=770, uf=1, cumulative = False):
-    #definir today (ayer)
-    today = date.today()
-    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
-    today = today - shift
-    
+def tenor_graph(producto, tenors,start_date,end_date,period,usd=770, uf=1, cumulative = False):
+
     usd,uf,duration,l = values_product(producto,usd,uf)
     
     if period == 'WEEKLY':
@@ -1369,14 +1342,14 @@ def tenor_graph(producto, tenors,start_date,period,usd=770, uf=1, cumulative = F
         #coming_monday = start_date + timedelta(days=-start_date.weekday(), weeks=1)
         #start_date = min([last_monday,coming_monday], key=lambda x: abs(x - start_date))
         start_date = start_date + timedelta(days=-start_date.weekday(), weeks=1)
-        today = today - timedelta(days=today.weekday()) - timedelta(days=3)
+        end_date = end_date - timedelta(days=end_date.weekday()) - timedelta(days=3)
 
-    df = daily_change(producto, start_date, today)
+    df = daily_change(producto, start_date, end_date)
     
     #date to datetime
     df['Date'] = pd.to_datetime(df['Date'])
     #hacer un BIG FILL
-    df = fill_df(df,start_date,today)
+    df = fill_df(df,start_date,end_date)
     
     if period == 'DAILY':
         df = df.groupby(['Tenor','Date']).agg({'Volume':'sum'}).reset_index()
@@ -1411,11 +1384,11 @@ def tenor_graph(producto, tenors,start_date,period,usd=770, uf=1, cumulative = F
                 y_ = df['DV01'].cumsum()
             fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))
         #formatear fecha
-        if start_date.year == today.year:
+        if start_date.year == end_date.year:
             start_date = start_date.strftime('%d %B')
         else:
             start_date = start_date.strftime('%d %B %Y')
-        today = today.strftime('%d %B %Y')
+        end_date = end_date.strftime('%d %B %Y')
         fig.update_layout(xaxis={'title':tenor},
                           yaxis={'title':'DV01'})
         
@@ -1432,19 +1405,19 @@ def tenor_graph(producto, tenors,start_date,period,usd=770, uf=1, cumulative = F
 
             fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))#, name="AAPL Low",line_color='dimgray'))
         if 'All' in tenors:
-            df = df.groupby(['Date']).agg({'DV01':'sum'}).reset_index()
+            df = df.groupby(['Date']).agg({'Volume':'sum'}).reset_index()
             x_ = df['Date']
             if cumulative == False:
-                y_ = df['DV01']
+                y_ = df['Volume']
             else:
-                y_ = df['DV01'].cumsum()
+                y_ = df['Volume'].cumsum()
             fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))
         #formatear fecha
-        if start_date.year == today.year:
+        if start_date.year == end_date.year:
             start_date = start_date.strftime('%d %B')
         else:
             start_date = start_date.strftime('%d %B %Y')
-        today = today.strftime('%d %B %Y')
+        end_date = end_date.strftime('%d %B %Y')
         
         fig.update_layout(xaxis={'title':tenor},
                           yaxis={'title':'Volume'})
@@ -1461,16 +1434,12 @@ def tenor_graph(producto, tenors,start_date,period,usd=770, uf=1, cumulative = F
     return fig
 
 
-def bar_by_tenor(producto, start_date, tenor_range=None,usd=770, uf=1,show_total=False):
-    #definir today (ayer)
-    today = date.today()
-    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
-    today = today - shift
-    
+def bar_by_tenor(producto, start_date,end_date, tenor_range=None,usd=770, uf=1,show_total=False):
+
     usd,uf,duration,l = values_product(producto,usd,uf)
     
     #cargar data
-    df = query_by_daterange(producto, start_date, today)
+    df = query_by_daterange(producto, start_date, end_date)
 
     #usar tenors en rango
     if tenor_range is not None:
@@ -1482,11 +1451,11 @@ def bar_by_tenor(producto, start_date, tenor_range=None,usd=770, uf=1,show_total
         return None
 
     #formatear fecha
-    if start_date.year == today.year:
+    if start_date.year == end_date.year:
         start_date = start_date.strftime('%d %B')
     else:
         start_date = start_date.strftime('%d %B %Y')
-    today = today.strftime('%d %B %Y')
+    end_date = end_date.strftime('%d %B %Y')
     
     if producto != 'NDF_USD_CLP':
         #pasar a DV01
@@ -1510,7 +1479,7 @@ def bar_by_tenor(producto, start_date, tenor_range=None,usd=770, uf=1,show_total
         fig.update_layout(barmode='stack',
                       xaxis={'title':'Tenor'},
                       yaxis={'title':'DV01'},
-                      title='Accumulated ' + producto+': '+start_date+' to '+today)
+                      title='Accumulated ' + producto+': '+start_date+' to '+end_date)
         
     else:
         if show_total:
@@ -1531,7 +1500,7 @@ def bar_by_tenor(producto, start_date, tenor_range=None,usd=770, uf=1,show_total
         fig.update_layout(barmode='stack',
                           xaxis={'title':'Tenor'},
                           yaxis={'title':'Volume'},
-                          title= 'Accumulated '+ producto+': '+start_date+' to '+today)
+                          title= 'Accumulated '+ producto+': '+start_date+' to '+end_date)
         
     return fig
 
@@ -1548,11 +1517,8 @@ def ndf_index(fecha):
     return n_index
 
 
-def graph_ndf_index(start_date,cumulative = False):
-    today = date.today()
-    shift = timedelta(max(1,(today.weekday() + 6) % 7 - 3))
-    today = today - shift
-    business_days = pd.date_range(start=start_date, end=today, freq='B')
+def graph_ndf_index(start_date,end_date,cumulative = False):
+    business_days = pd.date_range(start=start_date, end=end_date, freq='B')
     n_indexes = list()
     for single_date in business_days:
         n_indexes.append(ndf_index(single_date))
