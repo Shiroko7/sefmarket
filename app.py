@@ -36,7 +36,7 @@ app.layout = html.Div(children=
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H6('Versión Alpha 1.2.3',),
+                        html.H6('Versión Alpha 1.2.4',),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
@@ -629,8 +629,8 @@ def update_table(producto,fecha, usd, uf, styles):
                 {"name": ['Actual','Volume'], 'id':"Volume"},
                 {"name": ['Actual','DV01'], 'id':"DV01"},
                 {"name": ['Actual','Zs'], 'id':"Zs"},
-                {"name": ['Historic','Highest'], 'id':"Highest"},
                 {"name": ['Historic','Mean'], 'id':'Mean'},
+                {"name": ['Historic','Highest'], 'id':"Highest"},
                 {"name": ['Days Traded','Count'], 'id':'Trades'},
                 {"name": ['Days Traded','%'], 'id':"Percent"},
         ]
@@ -639,8 +639,8 @@ def update_table(producto,fecha, usd, uf, styles):
                 {"name": ['','Tenor'], 'id':"Tenor"},
                 {"name": ['Actual','Volume'], 'id':"Volume"},
                 {"name": ['Actual','Zs'], 'id':"Zs"},
-                {"name": ['Historic','Highest'], 'id':"Highest"},
                 {"name": ['Historic','Mean'], 'id':'Mean'},
+                {"name": ['Historic','Highest'], 'id':"Highest"},
                 {"name": ['Days Traded','Count'], 'id':'Trades'},
                 {"name": ['Days Traded','%'], 'id':"Percent"},
         ]

@@ -500,7 +500,7 @@ def informe_v1(producto,start_date,period,usd,uf=1):
         l = 1
 
     #crear df con todos los tenors
-    cols = ['Tenor','Volume','DV01','SD','Highest','Mean','Days Traded','Percent']
+    cols = ['Tenor','Volume','DV01','SD','Mean','Highest','Days Traded','Percent']
     empty_df = pd.DataFrame(columns = cols)
     for i in duration.keys():
         dfi =  pd.DataFrame([[i,0,0,0,0,0,0,0]],columns = cols)
@@ -664,7 +664,7 @@ def informe_ndf(start_date, period):
         return None
         
     #crear df con todos los tenors
-    cols = ['Tenor','Volume','SD','Highest','Mean','Days Traded','Percent']
+    cols = ['Tenor','Volume','SD','Mean','Highest','Days Traded','Percent']
 
     #calcular fecha desde hoy
     today = date.today()
