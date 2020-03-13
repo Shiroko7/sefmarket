@@ -1017,7 +1017,8 @@ def box_plot_all(producto,start_date,end_date,period,tenor_range=None,usd=1,uf=1
     #print('boxploting time: ', (end-start).seconds)
     return fig
 
-def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, cumulative = False):    
+def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, cumulative = False):
+    tenors = list({tenor if tenor != '1Y' else '12M' for tenor in tenors})
     usd,uf,duration,l = values_product(producto,usd,uf)
     
     if period == 'WEEKLY':
@@ -1066,7 +1067,7 @@ def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, c
                 
         #crear time series
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=x_, y=y_))
+        fig.add_trace(go.Scatter(x=x_, y=y_,name=' ',showlegend=False))
         
         if cumulative == False:
             #agregar meadia
@@ -1084,6 +1085,12 @@ def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, c
                             dash="dashdot",
                         ),
                 ))
+            fig.add_trace(go.Scatter(x=[df['Date'][1]],
+                                    y=[y_.mean()],
+                                    name = "Mean: "+"{0:.1f} K".format(y_.mean()/1e3),
+                                    mode='markers',
+                                    marker=dict(color=["darkblue"]),
+                                    showlegend=True,))
         #formatear fecha
         if start_date.year == end_date.year:
             start_date = start_date.strftime('%d %B')
@@ -1113,7 +1120,7 @@ def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, c
                 
         #crear time series
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=x_, y=y_))#, name="AAPL Low",line_color='dimgray'))
+        fig.add_trace(go.Scatter(x=x_, y=y_,name=' ',showlegend=False))#, name="AAPL Low",line_color='dimgray'))
         if cumulative == False:
             fig.add_shape(
                     # Line Horizontal
@@ -1129,7 +1136,12 @@ def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, c
                             dash="dashdot",
                         ),
                 ))
-
+            fig.add_trace(go.Scatter(x=[df['Date'][1]],
+                                    y=[y_.mean()],
+                                    name = "Mean: "+"{0:.1f} B".format(y_.mean()/1e9),
+                                    mode='markers',
+                                    marker=dict(color=["darkblue"]),
+                                    showlegend=True,))
         #formatear fecha
         if start_date.year == end_date.year:
             start_date = start_date.strftime('%d %B')
@@ -1337,7 +1349,7 @@ def participation_graph_by_date(producto, start_date, end_date,tenor_range=None,
     return fig
 
 def tenor_graph(producto, tenors,start_date,end_date,period,usd=770, uf=1, cumulative = False):
-
+    tenors = list({tenor if tenor != '1Y' else '12M' for tenor in tenors})
     usd,uf,duration,l = values_product(producto,usd,uf)
     
     if period == 'WEEKLY':
@@ -1385,7 +1397,7 @@ def tenor_graph(producto, tenors,start_date,end_date,period,usd=770, uf=1, cumul
                 y_ = df['DV01']
             else:
                 y_ = df['DV01'].cumsum()
-            fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))
+            fig.add_trace(go.Scatter(x=x_, y=y_,name='All'))
         #formatear fecha
         if start_date.year == end_date.year:
             start_date = start_date.strftime('%d %B')
@@ -1414,7 +1426,7 @@ def tenor_graph(producto, tenors,start_date,end_date,period,usd=770, uf=1, cumul
                 y_ = df['Volume']
             else:
                 y_ = df['Volume'].cumsum()
-            fig.add_trace(go.Scatter(x=x_, y=y_,name=tenor))
+            fig.add_trace(go.Scatter(x=x_, y=y_,name='All'))
         #formatear fecha
         if start_date.year == end_date.year:
             start_date = start_date.strftime('%d %B')
@@ -1527,13 +1539,63 @@ def graph_ndf_index(start_date,end_date,cumulative = False):
         n_indexes.append(ndf_index(single_date))
     fig = go.Figure()
     if not cumulative:
-        fig.add_trace(go.Scatter(x=business_days, y=n_indexes))
+        fig.add_trace(go.Scatter(x=business_days, y=n_indexes,name=' ',showlegend=False))
+        fig.add_shape(
+                # Line Horizontal
+                go.layout.Shape(
+                    type="line",
+                    x0=business_days[0],
+                    y0=sum(n_indexes)/len(n_indexes),
+                    x1=business_days[-1],
+                    y1=sum(n_indexes)/len(n_indexes),
+                    line=dict(
+                        color="darkblue",
+                        width=4,
+                        dash="dashdot",
+                    ),
+            ))
+        fig.add_trace(go.Scatter(x=[business_days[1]],
+                                y=[sum(n_indexes)/len(n_indexes)],
+                                name = "Mean: "+"{0:.1f} B".format(sum(n_indexes)/len(n_indexes)/1e9),
+                                mode='markers',
+                                marker=dict(color=["darkblue"]),
+                                showlegend=True,))
         fig.update_layout(title = 'NDF INDEX Time Series ')
     else:
-        fig.add_trace(go.Scatter(x=business_days, y=pd.Series(n_indexes).cumsum()))
+        fig.add_trace(go.Scatter(x=business_days, y=pd.Series(n_indexes).cumsum(),name=' ',showlegend=False))
         fig.update_layout(title = 'Accumulated NDF INDEX Time Series ')
+
+
     fig.update_layout(yaxis={'title':'Volume'})
     
     return fig
 
 
+def table_ndf_index(start_date,end_date):
+    cols = ['Date','Index','Zs','Mean']
+    business_days = pd.date_range(start=start_date, end=end_date, freq='B')
+    
+    df_indexes = pd.DataFrame(columns=cols)
+    count = 0
+    cum = 0
+
+    count = count + 1
+    index = ndf_index(start_date)/1e6
+    cum = cum + index
+    mean = cum/count
+    sd = (((index - mean)**2)/count)**0.5
+    zscore = (index - mean)/sd
+    row  = {'Date':business_days[0],'Index':index,'Mean':mean,'Zs':zscore}
+    df_indexes = df_indexes.append(row,ignore_index=True)
+
+    business_days = business_days[1:]
+    for single_date in business_days:
+        count = count + 1
+        index = ndf_index(single_date)/1e6
+        cum = cum + index
+        mean = cum/count
+        sd = ((((df_indexes['Index'] - mean)**2).sum() + (index - mean)**2)/count)**0.5
+        zscore = (index - mean)/sd
+        row  = {'Date':single_date,'Index':index,'Mean':mean,'Zs':zscore}
+        df_indexes = df_indexes.append(row,ignore_index=True)
+    return df_indexes

@@ -10,6 +10,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 
 import pandas as pd
+import numpy as np
 import api
 from datetime import date, timedelta, datetime, time
 
@@ -36,7 +37,7 @@ app.layout = html.Div(children=
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H6('Versión Alpha 1.2.6',),
+                        html.H6('Versión Alpha 1.3.0',),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
@@ -226,7 +227,12 @@ app.layout = html.Div(children=
                         dcc.Loading(id = "loading-icon-7", children=[dcc.Graph(id='fig_7')], type="circle"),
                         ],className="pretty_container"
                     )
-                ],id='div_7')
+                ],id='div_7'),
+                html.Div(
+                    [
+                        dcc.Loading(id = "loading-icon-8", children=[dash_table.DataTable(id='table_2')], type="dot")
+                    ],id='div_8'
+                )
                 ],className="eight columns")
         ], className='row'),
         html.Div(
@@ -335,93 +341,33 @@ app.layout = html.Div(children=
 ],id="mainContainer",style={"display": "flex","flex-direction": "column"}
 )
  
-#@app.callback(Output('options', 'children'), [Input('producto', 'value')])
-#def load_tenors(producto):
-#    hidden_df = api.query_by_daterange(producto,date(2020,1,3),today)
-#    options = hidden_df['Tenor'].unique()
-#    options = api.tenor_sort_3(options)
-#    return json.dumps(options)
-
 @app.callback(
     Output('tenor_slider_output_1', 'children'),
-    [Input('tenor_slider_1', 'value'),
-    #Input('options','children')
-    ])
-def update_output(value):#,options):
-    #options = json.loads(options)
-    #a = {i:options[i] for i in range(len(options))}
+    [Input('tenor_slider_1', 'value')]
+)
+def update_output(value):
     return 'Filtrar por rango de tenors: {}-{}'.format(a[value[0]],a[value[1]])
 
 @app.callback(
     Output('tenor_slider_output_3', 'children'),
-    [Input('tenor_slider_3', 'value'),
-    #Input('options','children')
-    ])
-def update_output(value):#,options):
-    #options = json.loads(options)
-    #a = {i:options[i] for i in range(len(options))}
+    [Input('tenor_slider_3', 'value')]
+)
+def update_output(value):
     return 'Filtrar por rango de tenors: {}-{}'.format(a[value[0]],a[value[1]])
 
 @app.callback(
     Output('tenor_slider_output_4', 'children'),
-    [Input('tenor_slider_4', 'value'),
-    #Input('options','children')
-    ])
-def update_output(value):#,options):
-    #options = json.loads(options)
-    #a = {i:options[i] for i in range(len(options))}
+    [Input('tenor_slider_4', 'value')]
+)
+def update_output(value):
     return 'Filtrar por rango de tenors: {}-{}'.format(a[value[0]],a[value[1]])
 
 @app.callback(
     Output('tenor_slider_output_6', 'children'),
-    [Input('tenor_slider_6', 'value'),
-    #Input('options','children')
-    ])
-def update_output(value):#,options):
-    #options = json.loads(options)
-    #a = {i:options[i] for i in range(len(options))}
+    [Input('tenor_slider_6', 'value'),]
+)
+def update_output(value):
     return 'Filtrar por rango de tenors: {}-{}'.format(a[value[0]],a[value[1]])
-
-
-#@app.callback(
-#    [Output('tenor_slider_1','min'),
-#     Output('tenor_slider_1','max'),
-#     Output('tenor_slider_1','value'),
-#     Output('tenor_slider_3','min'),
-#     Output('tenor_slider_3','max'),
-#     Output('tenor_slider_3','value'),
-#     Output('tenor_slider_4','min'),
-#     Output('tenor_slider_4','max'),
-#     Output('tenor_slider_4','value'),
-#     Output('tenor_slider_6','min'),
-#     Output('tenor_slider_6','max'),
-#     Output('tenor_slider_6','value')],
-#    [Input('options','children')]
-#)
-#
-#def update_rangesliders(options):
-#    options = json.loads(options)
-#    a = {i:options[i] for i in range(len(options))}
-#    return 0,len(a)-1,[0,len(a)-1],0,len(a)-1,[0,len(a)-1],0,len(a)-1,[0,len(a)-1],0,len(a)-1,[0,len(a)-1]
-
-#@app.callback(
-#    [Output('dropdown_5','options'),
-#    Output('dropdown_5','value')],
-#    [Input('options','children')]
-#)
-#
-#def update_dropdown_5(options):
-#    #options = json.loads(options)
-#    #b = [{'label': options[i], 'value': options[i]} for i in range(len(options))]
-#    return b,[b[0]['value'],b[-1]['value']]
-
-#@app.callback(Output("loading-icon-1", "children"))
-#@app.callback(Output("loading-icon-2", "children"))
-#@app.callback(Output("loading-icon-3", "children"))
-#@app.callback(Output("loading-icon-4", "children"))
-#@app.callback(Output("loading-icon-6", "children"))
-#@app.callback(Output("loading-icon-7", "children"))
-
 
 @app.callback(
     Output(component_id='fig_1', component_property='figure'),
@@ -613,7 +559,7 @@ def upgrade_div_7(producto,start_date,end_date):
                         ],className="pretty_container"
                     )
                 ]
-        return []
+        return [html.Div([])]
 
 
 @app.callback(
@@ -689,6 +635,129 @@ def update_table(producto,period,start_date,end_date, usd, uf, styles):
     })
     return df,cols, styles
 
+@app.callback(
+    Output('div_8','children'),
+    [Input('producto','value'),
+    Input('daterange','start_date'),
+    Input('daterange','end_date')]
+)
 
+def load_table_2(producto,start_date,end_date):
+    if producto == 'NDF_USD_CLP':
+        start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
+        end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
+        df = api.table_ndf_index(start_date = start_date, end_date=end_date)
+        df = df.iloc[::-1]
+        df = df.fillna(0.0)
+        df['Zs'] = pd.Series(["{0:,.1f}".format(val) for val in df['Zs']], index = df.index)
+        df['Index'] = pd.Series(["{0:,.0f}".format(val) for val in df['Index']], index = df.index)
+        df['Mean'] = pd.Series(["{0:,.0f}".format(val) for val in df['Mean']], index = df.index)
+        df['Date'] = df['Date'].astype(str)
+        df['Date'] = df.apply(lambda x: x['Date'][0:10],axis=1)
+        
+        cols = [{'name': i, 'id':i} for i in list(df.columns)]
+        df = df.to_dict('records')
+        return [
+                html.Div(
+                            [
+                                dcc.Loading(id = "loading-icon-8", children=[
+                                    dash_table.DataTable(id='table_2',
+                                                        data = df,
+                                                        columns = cols,
+                                                        style_table = {
+                                                                        'box-sizing': 'border-box',
+                                                                        'overflowX': 'scroll'
+                                                        },
+                                                        style_header={
+                                                            'fontWeight': 'bold',
+                                                            'textAlign': 'center',
+                                                            'padding-right':'0',
+                                                        },
+                                                        style_cell_conditional=[
+                                                            {
+                                                                'if': {'column_id': 'Date'},
+                                                                'textAlign': 'center'
+                                                            },
+                                                            {
+                                                                'if': {'column_id': 'Index'},
+                                                                'textAlign': 'right',
+                                                                'padding-right':'8%',
+                                                            },
+                                                            {
+                                                                'if': {'column_id': 'Zs'},
+                                                                'textAlign': 'center'
+                                                            },
+                                                            {
+                                                                'if': {'column_id': 'Mean'},
+                                                                'textAlign': 'right',
+                                                                'padding-right':'8%',
+                                                            },
+
+                                                        ],
+                                                        style_header_conditional=[
+                                                            {
+                                                                'if': {'column_id': 'Index'},
+                                                                'textAlign': 'center',
+                                                                'padding-right':'0',
+                                                            },
+                                                            {
+                                                                'if': {'column_id': 'Mean'},
+                                                                'textAlign': 'center',
+                                                                'padding-right':'0',
+                                                            },
+                                                        ],
+                                                        style_data_conditional=[
+                                                            {
+                                                                'if': {'row_index': 'odd'},
+                                                                'backgroundColor': 'rgb(251, 251, 251)'
+                                                            },
+                                                            {
+                                                                'if': {
+                                                                    'column_id': 'Zs',
+                                                                    'filter_query': '{Zs} > 0.0'
+                                                                },
+                                                                'color': 'green',
+                                                            },
+                                                            {
+                                                                'if': {
+                                                                    'column_id': 'Zs',
+                                                                    'filter_query': '{Zs} < 0.0'
+                                                                },
+                                                                'color': 'red',
+                                                            },
+                                                        ],
+                                                        page_size =10,
+                                    )
+                                    ], type="dot")
+                            ],id='div_8'
+                    )
+                ]
+    else:
+        return [html.Div([])]
+
+@app.callback(
+    Output('table_2','data'),
+    [Input('producto','value'),
+    Input('daterange','start_date'),
+    Input('daterange','end_date')]
+)
+
+def update_table_2(producto,start_date,end_date):
+    if producto == 'NDF_USD_CLP':
+        start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
+        end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
+        df = api.table_ndf_index(start_date = start_date, end_date=end_date)
+        df = df.iloc[::-1]
+        df = df.fillna(0.0)
+        df['Zs'] = pd.Series(["{0:,.1f}".format(val) for val in df['Zs']], index = df.index)
+        df['Index'] = pd.Series(["{0:,.0f}".format(val) for val in df['Index']], index = df.index)
+        df['Mean'] = pd.Series(["{0:,.0f}".format(val) for val in df['Mean']], index = df.index)
+        df['Date'] = df['Date'].astype(str)
+        df['Date'] = df.apply(lambda x: x['Date'][0:10],axis=1)
+
+        df = df.to_dict('records')
+        return df
+    else:
+        return []
 if __name__ == '__main__':
-    app.run_server(debug=True)
+        app.run_server(debug=True)
