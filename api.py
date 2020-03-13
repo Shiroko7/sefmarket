@@ -1565,7 +1565,14 @@ def graph_ndf_index(start_date,end_date,cumulative = False):
         fig.add_trace(go.Scatter(x=business_days, y=pd.Series(n_indexes).cumsum(),name=' ',showlegend=False))
         fig.update_layout(title = 'Accumulated NDF INDEX Time Series ')
 
-
+    # Add range slider
+    fig.update_layout(
+        xaxis=go.layout.XAxis(
+            rangeslider=dict(
+                visible=True
+            ),
+        )
+    )
     fig.update_layout(yaxis={'title':'Volume'})
     
     return fig
