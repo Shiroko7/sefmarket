@@ -513,3 +513,84 @@ there.
 
 /* Larger than Desktop HD */
 @media (min-width: 1200px) {}
+
+@page {
+  size: auto;  /* auto is the initial value */
+  margin: 0mm; /* this affects the margin in the printer settings */
+}
+
+
+@media print{
+  html {
+    width: 210mm;      
+    height: 290mm;
+  }
+  body {
+    border: solid 1px blue;
+    margin: 10mm 15mm 10mm 15mm; /* margin you want for the content */
+  }
+  .page-break  { display:block; page-break-before:always; }
+  .page {
+    margin: 0;
+    padding: 0;
+    border: initial;
+    border-radius: initial;
+    width: 100%;
+    min-height: initial;
+    box-shadow: initial;
+    background: none;
+    display:flex;
+    page-break-after: always;
+  } 
+  .pretty_container {
+    border-radius: none;
+    background-color: none;
+    margin: none;
+    padding: none;
+    position: relative;
+    box-shadow:none;
+  }
+
+  .no-print, .no-print * {
+    display: none !important;
+  }	
+
+  .row {
+  display: inline-block;
+  }
+
+  .one.column,
+  .one.columns                    { width: 150mm;                  }
+  .two.columns                    { width: 150mm;                  }
+  .three.columns                  { width: 150mm;                  }
+  .four.columns                   { width: 150mm;                  }
+  .five.columns                   { width: 150mm;                  }
+  .six.columns                    { width: 150mm;                  }
+  .seven.columns                  { width: 150mm;                  }
+  .eight.columns                  { width: 150mm;                 }
+  .nine.columns                   { width: 150mm;                 }
+  .ten.columns                    { width: 150mm;                 }
+  .eleven.columns                 { width: 150mm;                 }
+  .twelve.columns                 { width: 150mm; margin-left: 0; }
+
+/*
+  .one.column,
+  .one.columns                    { width: 133px;                  }
+  .two.columns                    { width: 266px;                  }
+  .three.columns                  { width: 400px;                  }
+  .four.columns                   { width: 533px;                  }
+  .five.columns                   { width: 666px;                  }
+  .six.columns                    { width: 800px;                  }
+  .seven.columns                  { width: 933px;                  }
+  .eight.columns                  { width: 1066px;                 }
+  .nine.columns                   { width: 1200px;                 }
+  .ten.columns                    { width: 1333px;                 }
+  .eleven.columns                 { width: 1466px;                 }
+  .twelve.columns                 { width: 1600px; margin-left: 0; }
+
+  .one-third.column               { width: 30.6666666667%; }
+  .two-thirds.column              { width: 65.3333333333%; }
+
+  .one-half.column                { width: 48%; }
+*/
+}

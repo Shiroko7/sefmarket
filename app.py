@@ -2,6 +2,7 @@
 
 import dash
 import dash_table
+#import dash_auth
 import dash_core_components as dcc
 import dash_html_components as html
 #import json
@@ -15,6 +16,12 @@ import api
 from datetime import date, timedelta, datetime, time
 
 import time
+import os
+
+def print_button():
+    printButton = html.A(['Print PDF'],className="button no-print print",style={'position': "absolute", 'top': '-40', 'right': '0'})
+    
+    return printButton
 
 
 #definir today (ayer)
@@ -26,18 +33,30 @@ options = [str(i)+'D' for i in range(0,30)] + [str(i)+'M' for i in range(1,13)] 
 a = {i:options[i] for i in range(len(options))}
 b = [{'label': options[i], 'value': options[i]} for i in range(len(options))] + [{'label':'All','value':'All'}]
 
-app = dash.Dash(__name__)
-server = app.server
+#should really not be here
+#VALID_USERNAME_PASSWORD_PAIRS = {
+#    'bancochile': 'bancochile'
+#}
+external_js = ["https://code.jquery.com/jquery-3.2.1.min.js",
+               "https://codepen.io/bcd/pen/YaXojL.js"]
 
+
+app = dash.Dash(__name__,external_scripts=external_js)
+server = app.server
+#auth = dash_auth.BasicAuth(
+#    app,
+#    VALID_USERNAME_PASSWORD_PAIRS
+#)
 
 app.layout = html.Div(children=
     [#html.Div(id='options', style={'display': 'none'}),
+        #print_button(),
         html.Div(
             [
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H6('Versión Beta 2.0.1',),
+                        html.H6('Versión Beta 2.0.1',className='no-print'),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
@@ -82,7 +101,7 @@ app.layout = html.Div(children=
                                 end_date=today,
                                 display_format='Do MMM, YY',
                         ),
-                        ], className = "pretty_container"),
+                        ], className = "pretty_container no-print"),
 
                     html.Div(
                         [
@@ -99,7 +118,7 @@ app.layout = html.Div(children=
                                     dcc.Input(id='uf', value='28500', type='number',style={'text-align':'right'})
                                 ],style={'margin-left':'20px'}
                             ),
-                        ],className="row pretty_container"
+                        ],className="row pretty_container no-print"
                     ),
                     dcc.Loading(
                         [
@@ -146,7 +165,6 @@ app.layout = html.Div(children=
                     ),
                 ],className="four columns"
             ),
-
             html.Div(
                 [
                 html.Div(
@@ -154,6 +172,7 @@ app.layout = html.Div(children=
                         html.P(
                             children = 'Filtrar por rango de tenors:',
                             id = 'tenor_slider_output_1',
+                            className = "no-print"
                         ),
 
                         dcc.RangeSlider(
@@ -170,14 +189,15 @@ app.layout = html.Div(children=
                                     61:{'label': '20Y'},
                                     71:{'label': '30Y'},
                                 },
-                            allowCross=False
+                            allowCross=False,
+                            className = "no-print"
                         ),
                         dcc.Checklist(
                             id='show_total',
                             options=[
                                 {'label': '  Mostrar total', 'value': 'True'}
                             ],
-                            className="dcc_control"
+                            className="dcc_control no-print"
                         ),
                         dcc.Loading(id = "loading-icon-1", children=[html.Div(dcc.Graph(id='fig_1'))], type="circle")
                     ],
@@ -187,6 +207,7 @@ app.layout = html.Div(children=
                         html.P(
                             children = 'Filtrar por rango de tenors:',
                             id = 'tenor_slider_output_6',
+                            className = 'no-print'
                         ),
                         dcc.RangeSlider(
                             id='tenor_slider_6',
@@ -202,14 +223,15 @@ app.layout = html.Div(children=
                                     61:{'label': '20Y'},
                                     71:{'label': '30Y'},
                                 },
-                            allowCross=False
+                            allowCross=False,
+                            className = "no-print"
                         ),
                         dcc.Checklist(
                             id='show_total_6',
                             options=[
                                 {'label': '  Mostrar total', 'value': 'True'}
                             ],
-                            className="dcc_control"
+                            className="dcc_control no-print"
                         ),
                         dcc.Loading(id = "loading-icon-6", children=[html.Div(dcc.Graph(id='fig_6'))], type="circle")
                     ],
@@ -222,7 +244,7 @@ app.layout = html.Div(children=
                             options=[
                                 {'label': '  Mostrar acumulado', 'value': 'True'}
                             ],
-                            className="dcc_control"
+                            className="dcc_control no-print"
                         ),
                         dcc.Loading(id = "loading-icon-7", children=[dcc.Graph(id='fig_7')], type="circle"),
                         ],className="pretty_container"
@@ -243,14 +265,15 @@ app.layout = html.Div(children=
                             id='dropdown_6',
                             options=b,
                             value=['All'],
-                            multi=True
+                            multi=True,
+                            className = "no-print"
                         ), 
                         dcc.Checklist(
                             id='cumulative_2',
                             options=[
                                 {'label': ' Mostrar acumulado', 'value': 'True'}
                             ],
-                            className="dcc_control"
+                            className="dcc_control no-print"
                         ),
                         dcc.Loading(id = "loading-icon-2", children=[html.Div(dcc.Graph(id='fig_2'))], type="circle")
                     ],
@@ -261,20 +284,21 @@ app.layout = html.Div(children=
                             id='dropdown_5',
                             options=b,
                             value=['1M', '12M','5Y','All'],
-                            multi=True
+                            multi=True,
+                            className = "no-print"
                         ), 
                         dcc.Checklist(
                             id='cumulative_5',
                             options=[
                                 {'label': ' Mostrar acumulado', 'value': 'True'}
                             ],
-                            className="dcc_control"
+                            className="dcc_control no-print"
                         ),
                         dcc.Loading(id = "loading-icon-5", children=[html.Div(dcc.Graph(id='fig_5'))], type="circle")
                     ],
                     className="pretty_container six columns"),
             ],
-            className='row'
+            className='row',
         ),
         html.Div(
             [
@@ -283,6 +307,7 @@ app.layout = html.Div(children=
                         html.P(
                             children = 'Filtrar por rango de tenors:',
                             id = 'tenor_slider_output_3',
+                            className = "no-print",
                         ),
 
                         dcc.RangeSlider(
@@ -299,7 +324,8 @@ app.layout = html.Div(children=
                                     61:{'label': '20Y'},
                                     71:{'label': '30Y'},
                                 },
-                            allowCross=False
+                            allowCross=False,
+                            className = "no-print"
                         ),
                     dcc.Loading(id = "loading-icon-3", children=[html.Div(dcc.Graph(id='fig_3'))], type="circle")
                 ],className="pretty_container five columns"),
@@ -308,6 +334,7 @@ app.layout = html.Div(children=
                         html.P(
                             children = 'Filtrar por rango de tenors:',
                             id = 'tenor_slider_output_4',
+                            className = 'no-print'
                         ),
                         dcc.RangeSlider(
                             id='tenor_slider_4',
@@ -323,22 +350,22 @@ app.layout = html.Div(children=
                                     61:{'label': '20Y'},
                                     71:{'label': '30Y'},
                                 },
-                            allowCross=False
+                            allowCross=False,
+                            className = "no-print"
                         ),
                         dcc.Checklist(
                             id='porcentaje_4',
                             options=[
                                 {'label': ' Mostrar porcentaje', 'value': 'True'}
                             ],
-                            className="dcc_control"
+                            className="dcc_control no-print"
                         ),
                     dcc.Loading(id = "loading-icon-4", children=[html.Div(dcc.Graph(id='fig_4'))], type="circle")
                 ],className="pretty_container seven columns"),
-
             ],
-            className='row'
+            className='row',
         ),
-],id="mainContainer",style={"display": "flex","flex-direction": "column"}
+]#,id="mainContainer",style={"display": "flex","flex-direction": "column"}
 )
  
 @app.callback(
@@ -759,5 +786,10 @@ def update_table_2(producto,start_date,end_date):
         return df
     else:
         return []
+
+
+
 if __name__ == '__main__':
         app.run_server(debug=True)
+
+    
