@@ -1530,13 +1530,16 @@ def bar_by_tenor(producto, start_date,end_date, tenor_range=None,usd=770, uf=1,s
 
 def ndf_index(fecha):
     df = query_by_date('NDF_USD_CLP',fecha)
-    df = df.groupby('Tenor').agg({'Volume':'sum'}).reset_index()
-    df['Volume']=df['Volume']*1e6
-    mask_inf = df.apply(lambda row: in_date(row['Tenor'],('0D','5D')), axis=1)
-    mask_mid = df.apply(lambda row: in_date(row['Tenor'],('6D','1M')), axis=1)
-    mask_sup = df.apply(lambda row: in_date(row['Tenor'],('2M','9999999999Y')), axis=1)
-    n_index = df[mask_mid]['Volume'].sum() - (df[mask_inf]['Volume'].sum() + df[mask_sup]['Volume'].sum())
-    return n_index
+    if df.empty:
+        return 0
+    else:
+        df = df.groupby('Tenor').agg({'Volume':'sum'}).reset_index()
+        df['Volume']=df['Volume']*1e6
+        mask_inf = df.apply(lambda row: in_date(row['Tenor'],('0D','5D')), axis=1)
+        mask_mid = df.apply(lambda row: in_date(row['Tenor'],('6D','1M')), axis=1)
+        mask_sup = df.apply(lambda row: in_date(row['Tenor'],('2M','9999999999Y')), axis=1)
+        n_index = df[mask_mid]['Volume'].sum() - (df[mask_inf]['Volume'].sum() + df[mask_sup]['Volume'].sum())
+        return n_index
 
 
 def graph_ndf_index(start_date,end_date,cumulative = False):
