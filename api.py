@@ -457,18 +457,25 @@ def color_negative_red(val):
         color = 'black'
     return 'color: %s' % color
 
+
+def oddness(row):
+    if row.name % 2 != 0:
+        return ['background-color: #f2f2f2' for i in range(len(row))]
+    else:
+        return ['background-color: #fafafa' for i in range(len(row))]
+
 # Set CSS properties for th elements in dataframe
 th_props = [
-  ('font-size', '15px'),
+  ('font-size', '25px'),
   ('text-align', 'center'),
   ('font-weight', 'bold'),
   ('color', '#6d6d6d'),
-  ('background-color', '#f7f7f9')
+  ('background-color', '#f2f2f2')
   ]
 
 # Set CSS properties for td elements in dataframe
 td_props = [
-  ('font-size', '12px'),
+  ('font-size', '20px')
   ]
 
 # Set table styles
@@ -995,14 +1002,14 @@ def box_plot_all(producto,start_date,end_date,period,tenor_range=None,usd=1,uf=1
 
     
     # Add range slider
-    fig.update_layout(
-        xaxis=go.layout.XAxis(
-            rangeslider=dict(
-                thickness = 0.01,
-                visible=True
-            ),
-        )
-    )
+    #fig.update_layout(
+    #    xaxis=go.layout.XAxis(
+    #        rangeslider=dict(
+    #            thickness = 0.01,
+    #            visible=True
+    #        ),
+    #    )
+    #)
     if producto != 'NDF_USD_CLP':
         fig.update_layout(xaxis={'title': producto},
                           yaxis={'title':'DV01'},
@@ -1156,13 +1163,13 @@ def general_graph(producto, tenors, start_date, end_date,period,usd=770, uf=1, c
         fig.update_layout(title=  str(period)+ ' Time Series ' + producto + ': ' + ' + '.join(actual_tenors))
 
     # Add range slider
-    fig.update_layout(
-        xaxis=go.layout.XAxis(
-            rangeslider=dict(
-                visible=True
-            ),
-        )
-    )
+    #fig.update_layout(
+    #    xaxis=go.layout.XAxis(
+    #        rangeslider=dict(
+    #            visible=True
+    #        ),
+    #    )
+    #)
     
     return fig
 
@@ -1438,13 +1445,13 @@ def tenor_graph(producto, tenors,start_date,end_date,period,usd=770, uf=1, cumul
                           yaxis={'title':'Volume'})
 
     # Add range slider
-    fig.update_layout(
-        xaxis=go.layout.XAxis(
-            rangeslider=dict(
-                visible=True
-            ),
-        )
-    )
+    #fig.update_layout(
+    #    xaxis=go.layout.XAxis(
+    #        rangeslider=dict(
+    #            visible=True
+    #        ),
+    #    )
+    #)
     fig.update_layout(title=  str(period)+ ' Time Series ' + producto)
     return fig
 
@@ -1566,13 +1573,13 @@ def graph_ndf_index(start_date,end_date,cumulative = False):
         fig.update_layout(title = 'Accumulated NDF INDEX Time Series ')
 
     # Add range slider
-    fig.update_layout(
-        xaxis=go.layout.XAxis(
-            rangeslider=dict(
-                visible=True
-            ),
-        )
-    )
+    #fig.update_layout(
+    #    xaxis=go.layout.XAxis(
+    #        rangeslider=dict(
+    #            visible=True
+    #        ),
+    #    )
+    #)
     fig.update_layout(yaxis={'title':'Volume'})
     
     return fig
