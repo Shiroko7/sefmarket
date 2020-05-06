@@ -4,25 +4,48 @@ import dash
 import dash_table
 #import dash_auth
 import dash_core_components as dcc
+import dash_bootstrap_components as dbc
 import dash_html_components as html
+import base64
+import chart_studio.plotly as py
 #import json
 #import numpy as np
 #mport dash_dangerously_set_inner_html
 from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
 
 import pandas as pd
 import numpy as np
 import api
+import plotly.io
 from datetime import date, timedelta, datetime, time
 
 import time
 import os
 
-def print_button():
-    printButton = html.A(['Print PDF'],className="button no-print print",style={'position': "absolute", 'top': '-40', 'right': '0'})
-    
-    return printButton
+#para generar pdfs
+#from xhtml2pdf import pisa             # import python module
+import pdfkit
 
+STATIC_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+
+#cambiar acocunt eventualmente
+#plotly.io.orca.config.executable  = '\orca'
+# Utility function
+#def convert_html_to_pdf(source_html, output_filename):
+#    # open output file for writing (truncated binary)
+#    result_file = open(output_filename, "w+b")
+#
+#    # convert HTML to PDF
+#    pisa_status = pisa.CreatePDF(
+#            source_html,                # the HTML to convert
+#            dest=result_file)           # file handle to recieve result
+#
+#    # close output file
+#    result_file.close()                 # close output file
+#
+#    # return True on success and False on errors
+#    return pisa_status.err
 
 #definir today (ayer)
 today = date.today()
@@ -37,11 +60,12 @@ b = [{'label': options[i], 'value': options[i]} for i in range(len(options))] + 
 #VALID_USERNAME_PASSWORD_PAIRS = {
 #    'bancochile': 'bancochile'
 #}
-external_js = ["https://code.jquery.com/jquery-3.2.1.min.js",
-               "https://codepen.io/bcd/pen/YaXojL.js"]
+#external_js = ["https://code.jquery.com/jquery-3.2.1.min.js",
+#               "https://codepen.io/bcd/pen/YaXojL.js"]
 
 
-app = dash.Dash(__name__,external_scripts=external_js)
+app = dash.Dash(__name__)#,external_stylesheets=[dbc.themes.BOOTSTRAP])#,external_scripts=external_js)
+app.config.suppress_callback_exceptions = True
 server = app.server
 #auth = dash_auth.BasicAuth(
 #    app,
@@ -49,14 +73,35 @@ server = app.server
 #)
 
 app.layout = html.Div(children=
-    [#html.Div(id='options', style={'display': 'none'}),
-        #print_button(),
+    [   
+        html.Div(
+            [
+                dbc.Button("Exportar a PDF", id="open",style={'position': "absolute", 'top': '-40', 'right': '0'}),
+                dbc.Modal(
+                    [
+                        dbc.ModalHeader("Exportar a PDF"),
+                        dbc.ModalBody(
+                            [
+                                html.A(['Generate PDF'],id="pdf-button",className="button no-print print",style={'margin': '0 auto'}),
+                                dcc.Loading(children=[html.Div(children=[html.A(['Download PDF'],id="download-pdf-button",href='NONE',download='report.pdf',className="button no-print print",hidden=True)],id='pdf-div',style={'margin': '0 auto'})]),
+                                html.P("Puede demorar varios minutos."),
+                                html.P("Por favor no cierre mientras se este cargando.")
+                            ],id='modal-body'
+                        ),
+                        dbc.ModalFooter(
+                            dbc.Button("Close", id="close", className="ml-auto")
+                        ),
+                    ],
+                    id="modal",
+                ),
+            ]
+        ),
         html.Div(
             [
                 html.Div(
                     [
                         html.H2('SEF Market Data Activity',),
-                        html.H6('Versión Beta 2.0.1',className='no-print'),
+                        html.H6('Versión Beta 2.3.1',className='no-print'),
                     ],className='twelve columns',style = {'text-align': 'center'}
                 )
             ],id='header',className='row',
@@ -256,7 +301,7 @@ app.layout = html.Div(children=
                     ],id='div_8'
                 )
                 ],className="eight columns")
-        ], className='row'),
+        ], className='row page'),
         html.Div(
             [
                 html.Div(
@@ -363,7 +408,7 @@ app.layout = html.Div(children=
                     dcc.Loading(id = "loading-icon-4", children=[html.Div(dcc.Graph(id='fig_4'))], type="circle")
                 ],className="pretty_container seven columns"),
             ],
-            className='row',
+            className='row page',
         ),
 ]#,id="mainContainer",style={"display": "flex","flex-direction": "column"}
 )
@@ -406,7 +451,6 @@ def update_output(value):
      Input(component_id='uf', component_property='value'),
      Input(component_id='tenor_slider_1', component_property='value'),
      Input(component_id='show_total', component_property='value'),
-     #Input(component_id='options',component_property='children')
      ],
 )
 def update_graph_1(producto,periodo,start_date,end_date, usd, uf,tenor_slider_1,show_total):#options):
@@ -414,20 +458,13 @@ def update_graph_1(producto,periodo,start_date,end_date, usd, uf,tenor_slider_1,
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
     end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
-    #options = json.loads(options)
-    #a = {i:options[i] for i in range(len(options))}
     tenors = (a[tenor_slider_1[0]],a[tenor_slider_1[1]])
-    #print("start:" + str(producto))
     flag = False
     if show_total is not None:
         if len(show_total)!=0:
             flag = True
         
-    #start = time.time()
     fig = api.box_plot_all(producto=producto,start_date=start_date,end_date=end_date,period=periodo,tenor_range=tenors,usd=usd,uf=uf,show_total=flag)
-    #end = time.time()
-    
-    #print("overall time: " + str(producto), end - start)
 
     return fig
 
@@ -464,19 +501,16 @@ def update_graph_2(producto,periodo,start_date,end_date, usd, uf,cumulative_2,te
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
      Input(component_id='tenor_slider_3', component_property='value'),
-     #Input(component_id='options',component_property='children')
      ],
      
 )
-def update_graph_3(producto,start_date, end_date, usd, uf,tenor_slider_3):#,options):
+def update_graph_3(producto,start_date, end_date, usd, uf,tenor_slider_3):
     usd = int(usd)
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
     end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
-    #options = json.loads(options)
-    #a = {i:options[i] for i in range(len(options))}
-    tenor_slider_3 = (a[tenor_slider_3[0]],a[tenor_slider_3[1]])
-    fig = api.participation_graph(producto=producto, start_date=start_date,end_date=end_date, tenor_range=tenor_slider_3,usd=usd, uf=uf)
+    tenors_3 = (a[tenor_slider_3[0]],a[tenor_slider_3[1]])
+    fig = api.participation_graph(producto=producto, start_date=start_date,end_date=end_date, tenor_range=tenors_3,usd=usd, uf=uf)
 
     return fig
 
@@ -490,22 +524,19 @@ def update_graph_3(producto,start_date, end_date, usd, uf,tenor_slider_3):#,opti
      Input(component_id='uf', component_property='value'),
      Input(component_id='tenor_slider_4',component_property='value'),
      Input(component_id='porcentaje_4',component_property='value'),
-     #Input(component_id='options',component_property='children')
      ]
 )
-def update_graph_4(producto,start_date,end_date, usd, uf, tenor_slider_4,porcentaje_4):#,options):
+def update_graph_4(producto,start_date,end_date, usd, uf, tenor_slider_4,porcentaje_4):
     usd = int(usd)
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
     end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
-    #options = json.loads(options)
-    #a = {i:options[i] for i in range(len(options))}
-    tenor_slider_4 =  (a[tenor_slider_4[0]],a[tenor_slider_4[1]])
+    tenors_4 =  (a[tenor_slider_4[0]],a[tenor_slider_4[1]])
     flag = False
     if porcentaje_4 is not None:
         if len(porcentaje_4) != 0:
             flag = True
-    fig = api.participation_graph_by_date(producto=producto, start_date=start_date,end_date=end_date,tenor_range=tenor_slider_4,usd=usd, uf=uf,percent=flag)
+    fig = api.participation_graph_by_date(producto=producto, start_date=start_date,end_date=end_date,tenor_range=tenors_4,usd=usd, uf=uf,percent=flag)
 
     return fig
 
@@ -541,23 +572,20 @@ def update_graph_5(producto,periodo,start_date,end_date, usd, uf,cumulative_5,dr
      Input(component_id='usd', component_property='value'),
      Input(component_id='uf', component_property='value'),
      Input(component_id='tenor_slider_6', component_property='value'),
-    Input(component_id='show_total_6', component_property='value'),
-    #Input(component_id='options',component_property='children')
+     Input(component_id='show_total_6', component_property='value'),
     ],
 )
-def update_graph_6(producto,start_date,end_date, usd, uf,tenor_slider_6,show_total_6):#,options):
+def update_graph_6(producto,start_date,end_date, usd, uf,tenor_slider_6,show_total_6):
     usd = int(usd)
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
     end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
-    #options = json.loads(options)
-    #a = {i:options[i] for i in range(len(options))}
-    tenors = (a[tenor_slider_6[0]],a[tenor_slider_6[1]])
+    tenors_6 = (a[tenor_slider_6[0]],a[tenor_slider_6[1]])
     flag = False
     if show_total_6 is not None:
         if len(show_total_6)!=0:
             flag = True
-    fig = api.bar_by_tenor(producto=producto,start_date=start_date,end_date=end_date,tenor_range=tenors,usd=usd,uf=uf,show_total=flag)
+    fig = api.bar_by_tenor(producto=producto,start_date=start_date,end_date=end_date,tenor_range=tenors_6,usd=usd,uf=uf,show_total=flag)
     return fig
 
 @app.callback(
@@ -586,7 +614,8 @@ def upgrade_div_7(producto,start_date,end_date):
                         ],className="pretty_container"
                     )
                 ]
-        return [html.Div([])]
+    else:
+        return [html.Div(id='show_total_7')]
 
 
 @app.callback(
@@ -788,8 +817,234 @@ def update_table_2(producto,start_date,end_date):
         return []
 
 
+@app.callback(
+    Output("modal", "is_open"),
+    [Input("open", "n_clicks"), Input("close", "n_clicks")],
+    [State("modal", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+
+@app.callback(
+    Output('pdf-div','children'),
+    [Input('pdf-button','n_clicks')],
+    [
+        State('table','data'),
+        State('producto','value'),
+        State('periodo','value'),
+        State('daterange','start_date'),
+        State('daterange','end_date'),
+        State('usd','value'),
+        State('uf','value'),
+        State('tenor_slider_1','value'),
+        State('show_total','value'),
+        State(component_id='cumulative_2', component_property='value'),
+        State(component_id='dropdown_6', component_property='value'),
+        State(component_id='tenor_slider_3', component_property='value'),
+        State(component_id='tenor_slider_4',component_property='value'),
+        State(component_id='porcentaje_4',component_property='value'),
+        State(component_id='cumulative_5', component_property='value'),
+        State(component_id='dropdown_5', component_property='value'),
+        State(component_id='tenor_slider_6', component_property='value'),
+        State(component_id='show_total_6', component_property='value'),
+        State('show_total_7','value')
+    ]
+)
+
+def print_pdf(n_clicks,table,producto,periodo,start_date,end_date,usd,uf,tenor_slider_1,show_total,cumulative_2,dropdown_6,tenor_slider_3,tenor_slider_4,porcentaje_4,cumulative_5,dropdown_5,tenor_slider_6,show_total_6,show_total_7):
+    if n_clicks is not None:
+        request_id = str(time.time()).replace('.','')
+
+        usd = int(usd)
+        uf = int(uf)
+        start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
+        end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')    
+
+        tenors_1 = (a[tenor_slider_1[0]],a[tenor_slider_1[1]])
+        tenors_3 = (a[tenor_slider_3[0]],a[tenor_slider_3[1]])
+        tenors_4 =  (a[tenor_slider_4[0]],a[tenor_slider_4[1]])
+        tenors_6 = (a[tenor_slider_6[0]],a[tenor_slider_6[1]])
+
+        flag_show_total = False
+        if show_total is not None:
+            if len(show_total)!=0:
+                flag_show_total = True
+            
+        flag_cumulative_2 = False
+        if cumulative_2 is not None:
+            if len(cumulative_2)!=0:
+                flag_cumulative_2 = True
+        flag_porcentaje_4 = False
+        if porcentaje_4 is not None:
+            if len(porcentaje_4) != 0:
+                flag_porcentaje_4 = True
+        flag_cumulative_5 = False
+        if cumulative_5 is not None:
+            if len(cumulative_5)!=0:
+                flag_cumulative_5 = True
+        flag_show_total_6 = False
+        if show_total_6 is not None:
+            if len(show_total_6)!=0:
+                flag_show_total_6 = True
+            
+        width = 1200
+        height = 800
+        df = pd.DataFrame.from_dict(table)
+        u = df.index.get_level_values(0)
+        if producto != 'NDF_USD_CLP':
+            #resumen
+            df = df.style.\
+                    applymap(api.color_negative_red,subset=pd.IndexSlice[:, ['Zs']]).\
+                    apply(api.oddness, axis=1).\
+                    apply(api.highlight_max,subset=pd.IndexSlice[u[:-1], ['Highest']],axis=0).\
+                    set_table_styles(api.styles).\
+                    set_properties(**{'width':'150px'}).\
+                    set_properties(subset=["DV01","Highest", "Mean","Percent","Zs"], **{'text-align': 'center'}).\
+                    set_properties(subset=["Trades", "Volume"], **{'text-align': 'right','padding-right':'80px',}).\
+                    set_properties(subset=["Tenor"], **{'text-align': 'left','padding-left':'82px'}).\
+                    hide_index()
+            #figuras
+            fig_1 = api.box_plot_all(producto=producto,start_date=start_date,end_date=end_date,period=periodo,tenor_range=tenors_1,usd=usd,uf=uf,show_total=flag_show_total)
+            fig_1.write_image("assets/fig_1_"+request_id+".png", width=width ,height=height,scale =2)
+
+            fig_2 = api.general_graph(producto=producto, tenors=dropdown_6, start_date=start_date,end_date=end_date,period=periodo,usd=usd, uf=uf, cumulative = flag_cumulative_2)
+            fig_2.write_image("assets/fig_2_"+request_id+".png", width=width ,height=height,scale =2)
+
+            fig_3 = api.participation_graph(producto=producto, start_date=start_date,end_date=end_date, tenor_range=tenors_3,usd=usd, uf=uf)
+            fig_3.write_image("assets/fig_3_"+request_id+".png", width=width ,height=height,scale =2)
+
+            fig_4 = api.participation_graph_by_date(producto=producto, start_date=start_date,end_date=end_date,tenor_range=tenors_4,usd=usd, uf=uf,percent=flag_porcentaje_4)
+            fig_4.write_image("assets/fig_4_"+request_id+".png", width=width ,height=height,scale =2)
+
+            fig_5 = api.tenor_graph(producto=producto, tenors=dropdown_5,start_date=start_date,end_date=end_date,period=periodo,usd=usd, uf=uf, cumulative = flag_cumulative_5)
+            fig_5.write_image("assets/fig_5_"+request_id+".png", width=width ,height=height,scale =2)
+
+            fig_6 = api.bar_by_tenor(producto=producto,start_date=start_date,end_date=end_date,tenor_range=tenors_6,usd=usd,uf=uf,show_total=flag_show_total_6)
+            fig_6.write_image("assets/fig_6_"+request_id+".png", width=width ,height=height,scale =2)
+            
+            images = ["fig_1_"+request_id+".png","fig_6_"+request_id+".png","fig_2_"+request_id+".png","fig_5_"+request_id+".png","fig_3_"+request_id+".png","fig_4_"+request_id+".png"]
+            
+        else:
+            flag_show_total_7 = False
+            if show_total_7 is not None:
+                if len(show_total_7)!=0:
+                    flag_show_total_7 = True
+            #resumen
+            df = df.style.\
+                    applymap(api.color_negative_red,subset=pd.IndexSlice[:, ['Zs']]).\
+                    apply(api.oddness, axis=1).\
+                    apply(api.highlight_max,subset=pd.IndexSlice[u[:-1], ['Highest']],axis=0).\
+                    set_table_styles(api.styles).\
+                    set_properties(**{'width':'150px'}).\
+                    set_properties(subset=["Highest", "Mean","Percent","Zs"], **{'text-align': 'center'}).\
+                    set_properties(subset=["Trades", "Volume"], **{'text-align': 'right','padding-right':'80px',}).\
+                    set_properties(subset=["Tenor"], **{'text-align': 'left','padding-left':'82px'}).\
+                    hide_index()
+
+            #table 2
+
+            df_2 = api.table_ndf_index(start_date=start_date,end_date=end_date)
+            df_2 = df_2.iloc[::-1]
+            df_2 = df_2.iloc[:7]
+            df_2 = df_2.fillna(0.0)
+            df_2['Zs'] = pd.Series(["{0:,.1f}".format(val) for val in df_2['Zs']], index = df_2.index)
+            df_2['Index'] = pd.Series(["{0:,.0f}".format(val) for val in df_2['Index']], index = df_2.index)
+            df_2['Mean'] = pd.Series(["{0:,.0f}".format(val) for val in df_2['Mean']], index = df_2.index)
+            df_2['Date'] = df_2['Date'].astype(str)
+            df_2['Date'] = df_2.apply(lambda x: x['Date'][0:10],axis=1)
+            df_2 = df_2.style.\
+                    applymap(api.color_negative_red,subset=pd.IndexSlice[:, ['Zs']]).\
+                    apply(api.oddness, axis=1).\
+                    set_table_styles(api.styles).\
+                    set_properties(**{'width':'300px'}).\
+                    set_properties(subset=["Date","Zs"], **{'text-align': 'center'}).\
+                    set_properties(subset=["Index","Mean"], **{'text-align': 'right','padding-right':'150px'})
+
+            #figuras
+            fig_1 = api.box_plot_all(producto=producto,start_date=start_date,end_date=end_date,period=periodo,tenor_range=tenors_1,usd=usd,uf=uf,show_total=flag_show_total)
+            fig_1.write_image("assets/fig_1_"+request_id+".png", width=width ,height=height,scale =2)
+
+            fig_2 = api.general_graph(producto=producto, tenors=dropdown_6, start_date=start_date,end_date=end_date,period=periodo,usd=usd, uf=uf, cumulative = flag_cumulative_2)
+            fig_2.write_image("assets/fig_2_"+request_id+".png", width=width ,height=height,scale =2)
+
+            fig_3 = api.participation_graph(producto=producto, start_date=start_date,end_date=end_date, tenor_range=tenors_3,usd=usd, uf=uf)
+            fig_3.write_image("assets/fig_3_"+request_id+".png", width=width ,height=height,scale =2)
+
+            fig_4 = api.participation_graph_by_date(producto=producto, start_date=start_date,end_date=end_date,tenor_range=tenors_4,usd=usd, uf=uf,percent=flag_porcentaje_4)
+            fig_4.write_image("assets/fig_4_"+request_id+".png", width=width ,height=height,scale =2)
+
+            fig_5 = api.tenor_graph(producto=producto, tenors=dropdown_5,start_date=start_date,end_date=end_date,period=periodo,usd=usd, uf=uf, cumulative = flag_cumulative_5)
+            fig_5.write_image("assets/fig_5_"+request_id+".png", width=width ,height=height,scale =2)
+
+            fig_6 = api.bar_by_tenor(producto=producto,start_date=start_date,end_date=end_date,tenor_range=tenors_6,usd=usd,uf=uf,show_total=flag_show_total_6)
+            fig_6.write_image("assets/fig_6_"+request_id+".png", width=width ,height=height,scale =2)
+            
+            fig_7 = api.graph_ndf_index(start_date=start_date,end_date=end_date,cumulative=flag_show_total_7)
+            fig_7.write_image("assets/fig_7_"+request_id+".png",width=width,height=height,scale=2)
+            
+            images = ["fig_1_"+request_id+".png","fig_6_"+request_id+".png","fig_7_"+request_id+".png","fig_2_"+request_id+".png","fig_5_"+request_id+".png","fig_3_"+request_id+".png","fig_4_"+request_id+".png"]
+            
+            
+        template = (''
+            '<img style="width: {width}; height: {height}" src="{image}">'
+            '<br>'
+            '<hr>'
+        '')
+        #api.go.figure(fig_1).write_image("fig1.png")
+
+        #images = [base64.b64encode(py.image.get(i, width=width, height=height)).decode('utf-8') for i in figures]
+        #print(df.render())
+        htmlref = "assets/report_"+request_id+".html"
+        fileref = "assets/report_"+request_id+".pdf"
+        f = open(htmlref, "w")
+        # '<!DOCTYPE html>' +
+        f.write("<h2 style='color: rgb(50, 50, 50); font-family: Open Sans;'>SEF Market Data Activity</h2>")
+        report_html = df.render().replace(': ;','')
+        f.write(report_html)
+        for image in images:
+            test = template
+            test = test.format(image=image, width=width, height=height)
+            f.write(test)
+            if image[0:5] == "fig_7":
+                f.write(df_2.render().replace(': ;',''))
+        
+        f.close()
+
+        #convert_html_to_pdf(report_html, 'report-2.pdf')
+        pdfkit.from_file(htmlref, fileref)
+
+        #delete temp files
+        for image in images:
+            tok = "assets/"+image
+            os.remove(tok)
+        os.remove(htmlref)
+        return [html.A(['Download PDF'],id="download-pdf-button",href=fileref,download='report.pdf',className="button no-print print",hidden=False)]
+
+    else:
+        return []
+
+
+@app.callback(
+    Output('modal-body','children'),
+    [Input('close','n_clicks')]
+)
+def close_modal(n_clicks):
+    if n_clicks is not None:
+        for filename in os.listdir('assets/'):
+            if filename.endswith(".pdf") : 
+                os.remove('assets/'+filename)
+                
+    return  [
+                html.A(['Generate PDF'],id="pdf-button",className="button no-print print",style={'margin': '0 auto'}),
+                dcc.Loading(children=[html.Div(children=[html.A(['Download PDF'],id="download-pdf-button",href='NONE',download='report.pdf',className="button no-print print",hidden=True)],id='pdf-div',style={'margin': '0 auto'})]),
+                html.P("Puede demorar un par de minutos."),
+                html.P("Por favor no cierre mientras se este cargando.")
+            ]
 
 if __name__ == '__main__':
-        app.run_server(debug=True)
+        app.run_server(debug=False)
 
     
