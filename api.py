@@ -355,7 +355,7 @@ def latam_parser_ID(row):
 
 def latam_proc(fecha):    
     fecha_x = "".join(str(fecha).split("-"))
-    token = "LatAmSEF_MarketActivityData_{0}.csv".format(fecha_x) 
+    token = "assets/LatAmSEF_MarketActivityData_{0}.csv".format(fecha_x) 
 
     #parsear como dataframe
     try:
@@ -547,7 +547,7 @@ def tradition_parser_ID(row):
 def tradition_proc(fecha):    
     #rescartar nombre del archivo
     fecha_x = "".join(str(fecha).split("-"))
-    token = "SEF16_MKTDATA_TFSU_{0}.csv".format(fecha_x) 
+    token = "assets/SEF16_MKTDATA_TFSU_{0}.csv".format(fecha_x) 
     try:
         #parsar como dataframe
         df = pd.read_csv(token,sep="|")
@@ -780,7 +780,7 @@ def tullett_parser_broker(row):
 
 def tullett_proc(fecha):
     fecha_x = "".join(str(fecha).split("-"))
-    token = "TULLETT_PREBON_MKTDATA_{0}.aspx".format(fecha_x)
+    token = "assets/TULLETT_PREBON_MKTDATA_{0}.aspx".format(fecha_x)
     try:
         #leer archivo como string
         data = open(token, 'r',).read()
@@ -939,7 +939,7 @@ def gfi_parser_ID(row):
 
 # Reading an excel file using Python 
 def gfi_proc(fecha):
-    token = "{0}_daily_trade_data.xls".format(str(fecha))
+    token = "assets/{0}_daily_trade_data.xls".format(str(fecha))
     try:
         #open book
         #EN CASO DE QUE CAMBIE EL HEADER
@@ -1078,7 +1078,7 @@ def bgc_parser_ID(row):
 # Reading an excel file using Python 
 def bgc_proc(fecha):
     fecha_x = "".join(str(fecha).split("-"))
-    token = "DailyAct_{0}-001.xls".format(fecha_x)
+    token = "assets/DailyAct_{0}-001.xls".format(fecha_x)
     try:
         #open book
         #EN CASO DE QUE CAMBIE EL HEADER
