@@ -8,7 +8,13 @@ sched = BlockingScheduler()
 def scheduled_job():
     downloads.daily_download()
     downloads.daily_upload()
-    
+    for filename in os.listdir('assets/'):
+        if filename.endswith(".xls"): 
+            os.remove('assets/'+filename)
+        elif filename.endswith(".csv"): 
+            os.remove('assets/'+filename)
+        elif filename.endswith(".aspx") : 
+            os.remove('assets/'+filename)
 
 sched.start()
 

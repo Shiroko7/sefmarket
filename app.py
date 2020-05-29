@@ -72,6 +72,8 @@ server = app.server
 #    VALID_USERNAME_PASSWORD_PAIRS
 #)
 
+import downloads
+
 app.layout = html.Div(children=
     [   
         html.Div(

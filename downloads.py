@@ -7,9 +7,7 @@ import urllib.request
 from urllib.request import urlopen
 #Descomprimir zip
 import zipfile
-#Interfaz gráfica
-from ipywidgets import interact, IntSlider, widgets
-from IPython.display import display_html
+
 import api
 
 #LatAmSEF
@@ -24,7 +22,7 @@ def latam_dl(fecha):
 
     #actual download
     try:
-        urllib.request.urlretrieve(url,token)
+        urllib.request.urlretrieve(url,'assets/'+token)
     
         out = "LatAmSEF {0} descargado con éxito".format(str(fecha))
     except:
@@ -35,10 +33,10 @@ def latam_dl(fecha):
 
             url = "http://latamsef.com/market-data/" + token
 
-            urllib.request.urlretrieve(url,token)
+            urllib.request.urlretrieve(url,'assets/'+token)
 
             #descomprimir carpeta principal
-            with zipfile.ZipFile(token, 'r') as zip_ref:
+            with zipfile.ZipFile('assets/'+token, 'r') as zip_ref:
                 zip_ref.extractall()
             out = "LatAmSEF {0} descargado con éxito".format(str(fecha))
         except:
@@ -48,16 +46,16 @@ def latam_dl(fecha):
                 token = "LatAmSEF_MarketActivityData_{0}.zip".format(fecha_x)
                 url = "http://latamsef.com/market-data/" + token
 
-                urllib.request.urlretrieve(url,token)
+                urllib.request.urlretrieve(url,'assets/'+token)
 
                 #descomprimir carpeta principal
-                with zipfile.ZipFile(token, 'r') as zip_ref:
+                with zipfile.ZipFile('assets/'+token, 'r') as zip_ref:
                     zip_ref.extractall()
                 #descomprimir cada mes
                 rango = ['0'+str(i) for i in range(1,10)] +['11','12']
                 for i in rango:
-                    token = token = "LatAmSEF_MarketActivityData_{0}".format(fecha)+i+".zip"
-                    with zipfile.ZipFile(token, 'r') as zip_ref:
+                    token =  "LatAmSEF_MarketActivityData_{0}".format(fecha)+i+".zip"
+                    with zipfile.ZipFile('assets/'+token, 'r') as zip_ref:
                         zip_ref.extractall()
 
                 out = "LatAmSEF {0} descargado con éxito".format(str(fecha_x))
@@ -78,12 +76,12 @@ def tradition_dl(fecha):
     
     #actual download
     try:
-        urllib.request.urlretrieve(url,token)
+        urllib.request.urlretrieve(url,'assets/'+token)
     
         out = "TraditionSEF {0} descargado con éxito".format(str(fecha))
     except:
         out = "Warning: TraditionSEF {0} no se encuentra disponible".format(str(fecha))
-    print(out)
+    #print(out)
 
 #tullet prebon
 def tullett_dl(fecha):
@@ -96,7 +94,7 @@ def tullett_dl(fecha):
     
     #actual download 
     try:
-        urllib.request.urlretrieve(url, token)
+        urllib.request.urlretrieve(url, 'assets/'+token)
     
         out = "tullet prebon {0} descargado con éxito".format(str(fecha))
     except:
@@ -115,7 +113,7 @@ def gfi_dl(fecha):
     
     #actual download
     try:
-        urllib.request.urlretrieve(url,token)    
+        urllib.request.urlretrieve(url,'assets/'+token)    
     
         out = "GFI {0} descargado con éxito".format(str(fecha))
         
@@ -135,7 +133,7 @@ def bgc_dl(fecha):
     
     #actual download
     try:
-        urllib.request.urlretrieve(url,token)    
+        urllib.request.urlretrieve(url,'assets/'+token)    
     
         out = "BGC {0} descargado con éxito".format(str(fecha))
         
