@@ -4,7 +4,7 @@ import os
 sched = BlockingScheduler()
 
 
-@sched.scheduled_job('cron', day_of_week='mon-fri', hour=14)
+@sched.scheduled_job('cron', day_of_week='mon-fri', hour=11,minutes=20)
 def scheduled_job():
     downloads.daily_download()
     downloads.daily_upload()
