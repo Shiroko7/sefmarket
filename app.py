@@ -79,23 +79,23 @@ app.layout = html.Div(children=
         html.Div(
             [
                 dbc.Button("Exportar a PDF", id="open",style={'position': "absolute", 'top': '-40', 'right': '0'}),
-                dbc.Modal(
-                    [
-                        dbc.ModalHeader("Exportar a PDF"),
-                        dbc.ModalBody(
-                            [
-                                html.A(['Generate PDF'],id="pdf-button",className="button no-print print",style={'margin': '0 auto'}),
-                                dcc.Loading(children=[html.Div(children=[html.A(['Download PDF'],id="download-pdf-button",href='NONE',download='report.pdf',className="button no-print print",hidden=True)],id='pdf-div',style={'margin': '0 auto'})]),
-                                html.P("Puede demorar varios minutos."),
-                                html.P("Por favor no cierre mientras se este cargando.")
-                            ],id='modal-body'
-                        ),
-                        dbc.ModalFooter(
-                            dbc.Button("Close", id="close", className="ml-auto")
-                        ),
-                    ],
-                    id="modal",
-                ),
+                #dbc.Modal(
+                #    [
+                #        dbc.ModalHeader("Exportar a PDF"),
+                #        dbc.ModalBody(
+                #            [
+                #                html.A(['Generate PDF'],id="pdf-button",className="button no-print print",style={'margin': '0 auto'}),
+                #                dcc.Loading(children=[html.Div(children=[html.A(['Download PDF'],id="download-pdf-button",href='NONE',download='report.pdf',className="button no-print print",hidden=True)],id='pdf-div',style={'margin': '0 auto'})]),
+                #                html.P("Puede demorar varios minutos."),
+                #                html.P("Por favor no cierre mientras se este cargando.")
+                #            ],id='modal-body'
+                #        ),
+                #        dbc.ModalFooter(
+                #            dbc.Button("Close", id="close", className="ml-auto")
+                #        ),
+                #    ],
+                #    id="modal",
+                #),
             ]
         ),
         html.Div(
