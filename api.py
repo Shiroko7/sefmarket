@@ -1317,7 +1317,8 @@ def resumen(producto, detalle = True, fecha = None):
 
 #conectarse a la base de datos
 #cambiar esto por un log in con input de usuario
-database = create_engine('postgres://pyyaxqhbgdrmnl:1473a2885ea9a1b3caf5305cef587aff5a652a9c4c7b7e99b6241c34dd5ffd7b@ec2-3-230-106-126.compute-1.amazonaws.com:5432/dabap8cbpp5m6s')
+#database = create_engine('postgres://pyyaxqhbgdrmnl:1473a2885ea9a1b3caf5305cef587aff5a652a9c4c7b7e99b6241c34dd5ffd7b@ec2-3-230-106-126.compute-1.amazonaws.com:5432/dabap8cbpp5m6s')
+database = create_engine('postgres://ywbhjstvlwwguj:4169cd9bb75716133a084e53deb4481699ec6cdc5c2d253af098ffb00fc77457@ec2-18-211-48-247.compute-1.amazonaws.com:5432/dc69t4t9dl57ao')
 base = declarative_base()
 
 Session = sessionmaker(database)  
