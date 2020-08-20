@@ -10,8 +10,9 @@ import time
 from datetime import date, timedelta, datetime, time
 from dateutil.relativedelta import relativedelta
 
-import utils.tools as tools
 from utils.api import query_by_date, query_by_daterange
+import utils.tools as tools
+
 
 
 def box_plot_all(producto, start_date, end_date, period, tenor_range=None, usd=1, uf=1, show_total=False):
