@@ -1,5 +1,5 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
-import utils.downloads
+import utils.downloads as downloadas
 import os
 sched = BlockingScheduler()
 
