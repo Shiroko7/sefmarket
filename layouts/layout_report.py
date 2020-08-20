@@ -5,7 +5,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from dash.dependencies import Input, Output, State
-from api import tseries_clf_clp, bar_by_tenor, general_graph
+from utils.api import tseries_clf_clp, bar_by_tenor, general_graph
 from datetime import date, timedelta, datetime, time
 today = date.today()
 shift = timedelta(max(1, (today.weekday() + 6) % 7 - 3))
