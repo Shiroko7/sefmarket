@@ -12,6 +12,7 @@ import numpy as np
 
 import utils.plots as plots
 import utils.tools as tools
+import utils.api as api
 
 import plotly.io
 from datetime import date, timedelta, datetime, time
@@ -297,8 +298,8 @@ def update_table(producto, period, start_date, end_date, usd, uf, styles):
     uf = int(uf)
     start_date = datetime.strptime(start_date[0:10], '%Y-%m-%d')
     end_date = datetime.strptime(end_date[0:10], '%Y-%m-%d')
-    df = tools.informe(producto=producto, start_date=start_date,
-                       end_date=end_date, period=period, usd=usd, uf=uf)
+    df = api.informe(producto=producto, start_date=start_date,
+                     end_date=end_date, period=period, usd=usd, uf=uf)
     if producto != 'NDF_USD_CLP':
         cols = [
             {"name": ['', 'Tenor'], 'id':"Tenor"},

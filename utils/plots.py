@@ -10,19 +10,18 @@ import time
 from datetime import date, timedelta, datetime, time
 from dateutil.relativedelta import relativedelta
 
-from utils.api import query_by_date, query_by_daterange
+import utils.api as api
 import utils.tools as tools
-
 
 
 def box_plot_all(producto, start_date, end_date, period, tenor_range=None, usd=1, uf=1, show_total=False):
 
     usd, uf, duration, l = tools.values_product(producto, usd, uf)
 
-    df = tools.get_historic(producto, start_date, end_date, period,
+    df = api.get_historic(producto, start_date, end_date, period,
                             tenor_range, usd, uf, duration, l)
 
-    period_df = tools.get_specific(
+    period_df = api.get_specific(
         producto, start_date, end_date, period, tenor_range, usd, uf, duration, l)
 
     if period == 'WEEKLY':
@@ -114,7 +113,7 @@ def general_graph(producto, tenors, start_date, end_date, period, usd=770, uf=1,
         end_date = end_date - \
             timedelta(days=end_date.weekday()) - timedelta(days=3)
 
-    df = tools.daily_change(producto, start_date, end_date)
+    df = api.daily_change(producto, start_date, end_date)
 
     # date to datetime
 
@@ -249,7 +248,7 @@ def participation_graph(producto, start_date, end_date, tenor_range, usd=770, uf
     usd, uf, duration, l = tools.values_product(producto, usd, uf)
 
     # cargar data
-    df = query_by_daterange(producto, start_date, end_date)
+    df = api.query_by_daterange(producto, start_date, end_date)
     df = df.groupby(['Broker', 'Tenor']).agg({'Volume': 'sum'}).reset_index()
 
     # usar tenors en rango
@@ -323,7 +322,7 @@ def participation_graph_by_date(producto, start_date, end_date, tenor_range=None
 
     usd, uf, duration, l = tools.values_product(producto, usd, uf)
 
-    df = query_by_daterange(producto, start_date, end_date)
+    df = api.query_by_daterange(producto, start_date, end_date)
     # usar tenors en rango
     if tenor_range is not None:
         mask = df.apply(lambda row: tools.in_date(
@@ -453,7 +452,7 @@ def tenor_graph(producto, tenors, start_date, end_date, period, usd=770, uf=1, c
         end_date = end_date - \
             timedelta(days=end_date.weekday()) - timedelta(days=3)
 
-    df = tools.daily_change(producto, start_date, end_date)
+    df = api.daily_change(producto, start_date, end_date)
 
     # date to datetime
     df['Date'] = pd.to_datetime(df['Date'])
@@ -553,7 +552,7 @@ def bar_by_tenor(producto, start_date, end_date, tenor_range=None, usd=770, uf=1
     usd, uf, duration, l = tools.values_product(producto, usd, uf)
 
     # cargar data
-    df = query_by_daterange(producto, start_date, end_date)
+    df = api.query_by_daterange(producto, start_date, end_date)
 
     # usar tenors en rango
     if tenor_range is not None:
@@ -644,7 +643,7 @@ def bar_by_tenor(producto, start_date, end_date, tenor_range=None, usd=770, uf=1
 
 
 def ndf_index(fecha):
-    df = query_by_date('NDF_USD_CLP', fecha)
+    df = api.query_by_date('NDF_USD_CLP', fecha)
     if df.empty:
         return 0
     else:
@@ -747,7 +746,7 @@ def tseries_clf_clp(start_date, end_date, usd=770, uf=1):
     ###################################
     usd, uf, duration, l = tools.values_product('CLF_CAM', usd, uf)
 
-    df_clf = tools.daily_change('CLF_CAM', start_date, end_date)
+    df_clf = api.daily_change('CLF_CAM', start_date, end_date)
     # date to datetime
 
     df_clf = df_clf.reset_index(drop=True)
@@ -767,7 +766,7 @@ def tseries_clf_clp(start_date, end_date, usd=770, uf=1):
     ################################
     usd, uf, duration, l = tools.values_product('CLP_CAM', usd, uf)
 
-    df = tools.daily_change('CLP_CAM', start_date, end_date)
+    df = api.daily_change('CLP_CAM', start_date, end_date)
     # date to datetime
 
     df = df.reset_index(drop=True)
