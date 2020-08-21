@@ -36,6 +36,12 @@ td.CalendarDay {
     padding: 0;
 }
 
+.foot {
+    padding-top: 20px;
+    position: relative;
+    bottom: 0px;
+}
+
 /* For devices larger than 400px */
 @media (min-width: 400px) {
     .container {
@@ -649,11 +655,17 @@ there.
 
 @media print {
     html {
-        width: 210mm;
+        width: 355mm;
+        font-size: 62.5%;
     }
     body {
-        /*border: solid 1px blue;
-    margin: 15mm 15mm 15mm 15mm; /* margin you want for the content */
+        font-size: 1.5em; /* currently ems cause chrome bug misinterpreting rems on body element */
+        line-height: 1.6;
+        font-weight: 400;
+        font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica,
+            Arial, sans-serif;
+        color: rgb(50, 50, 50);
+        margin: 5%;
     }
 
     .page-break {
@@ -672,11 +684,20 @@ there.
         display: flex;
         page-break-after: always;
     }
+    .Parent {
+        display: block;
+        page-break-after: always;
+    }
 
+    .foot {
+        margin-left: 10mm;
+        position: fixed;
+        bottom: 5px;
+    }
     .container {
         position: relative;
         width: 100%;
-        max-width: 180mm;
+        /*max-width: 180mm;*/
         margin: none;
         padding: none;
         box-sizing: border-box;
@@ -689,7 +710,7 @@ there.
         padding: none;
         position: relative;
         box-shadow: none;
-        padding-left: 20mm;
+        /*padding-left: 20mm;*/
     }
 
     .no-print,
@@ -703,40 +724,40 @@ there.
 
     .one.column,
     .one.columns {
-        width: 180mm;
+        width: 355mm;
     }
     .two.columns {
-        width: 180mm;
+        width: 355mm;
     }
     .three.columns {
-        width: 180mm;
+        width: 355mm;
     }
     .four.columns {
-        width: 180mm;
+        width: 355mm;
     }
     .five.columns {
-        width: 180mm;
+        width: 355mm;
     }
     .six.columns {
-        width: 180mm;
+        width: 355mm;
     }
     .seven.columns {
-        width: 180mm;
+        width: 355mm;
     }
     .eight.columns {
-        width: 180mm;
+        width: 355mm;
     }
     .nine.columns {
-        width: 180mm;
+        width: 355mm;
     }
     .ten.columns {
-        width: 180mm;
+        width: 355mm;
     }
     .eleven.columns {
-        width: 180mm;
+        width: 355mm;
     }
     .twelve.columns {
-        width: 180mm;
+        width: 355mm;
         margin-left: 0;
     }
 

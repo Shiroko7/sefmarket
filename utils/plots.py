@@ -1,6 +1,7 @@
 # Using graph_objects
 import plotly
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 import pandas as pd
 import numpy as np
@@ -19,7 +20,7 @@ def box_plot_all(producto, start_date, end_date, period, tenor_range=None, usd=1
     usd, uf, duration, l = tools.values_product(producto, usd, uf)
 
     df = api.get_historic(producto, start_date, end_date, period,
-                            tenor_range, usd, uf, duration, l)
+                          tenor_range, usd, uf, duration, l)
 
     period_df = api.get_specific(
         producto, start_date, end_date, period, tenor_range, usd, uf, duration, l)
@@ -162,10 +163,14 @@ def general_graph(producto, tenors, start_date, end_date, period, usd=770, uf=1,
             color = 'darkorchid'
             tit = 'Basis: Promedio diario de DV01 transado en la última semana'
         # crear time series
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=x_, y=y_, name=' ',
-                                 showlegend=False, marker_color=color))
-
+        if report:
+            fig = make_subplots(specs=[[{"secondary_y": True}]])
+            fig.add_trace(go.Scatter(x=x_, y=y_, name=' ',
+                                     showlegend=False, marker_color=color), secondary_y=False)
+        else:
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=x_, y=y_, name=' ',
+                                     showlegend=False, marker_color=color))
         fig.update_layout(yaxis={'title': 'DV01'})
 
     else:
@@ -186,13 +191,18 @@ def general_graph(producto, tenors, start_date, end_date, period, usd=770, uf=1,
                 y_ = df['Volume']
             else:
                 y_ = df['Volume'].cumsum()
-
-        # crear time series
-        fig = go.Figure()
         # , name="AAPL Low",line_color='dimgray'))
         color = 'crimson'
-        fig.add_trace(go.Scatter(x=x_, y=y_, name=' ',
-                                 showlegend=False, marker_color=color))
+        if report:
+            # crear time series
+            fig = make_subplots(specs=[[{"secondary_y": True}]])
+            fig.add_trace(go.Scatter(x=x_, y=y_, name=' ',
+                                     showlegend=False, marker_color=color), secondary_y=False)
+        else:
+            # crear time series
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=x_, y=y_, name=' ',
+                                     showlegend=False, marker_color=color))
 
         fig.update_layout(yaxis={'title': 'Volume'})
 
@@ -212,12 +222,20 @@ def general_graph(producto, tenors, start_date, end_date, period, usd=770, uf=1,
                 ),
             ))
         Name = tools.namer(y_.mean())
-        fig.add_trace(go.Scatter(x=[df['Date'][1]],
-                                 y=[y_.mean()],
-                                 name=Name,
-                                 mode='markers',
-                                 marker=dict(color=[color]),
-                                 showlegend=True,))
+        if report:
+            fig.add_trace(go.Scatter(x=[df['Date'][1]],
+                                     y=[y_.mean()],
+                                     name=Name,
+                                     mode='markers',
+                                     marker=dict(color=[color]),
+                                     showlegend=True,), secondary_y=False)
+        else:
+            fig.add_trace(go.Scatter(x=[df['Date'][1]],
+                                     y=[y_.mean()],
+                                     name=Name,
+                                     mode='markers',
+                                     marker=dict(color=[color]),
+                                     showlegend=True,))
     # formatear fecha
     if start_date.year == end_date.year:
         start_date = start_date.strftime('%d %B')
@@ -240,6 +258,10 @@ def general_graph(producto, tenors, start_date, end_date, period, usd=770, uf=1,
         fig.update_layout(
             yaxis={'title': 'DV01'}, title='DV01 total transado por día en '+producto)
 
+    if report:
+        fig.add_trace(go.Scatter(x=x_, y=y_, name=' ',
+                                 showlegend=False, marker_color=color), secondary_y=True)
+        fig.update_layout(xaxis=dict(domain=[0, 0.985]))
     return fig
 
 
@@ -257,7 +279,7 @@ def participation_graph(producto, start_date, end_date, tenor_range, usd=770, uf
     df = df[mask]
 
     if df.empty:
-        #print("No se encontraron transacciones en: " + str(tenor_range))
+        # print("No se encontraron transacciones en: " + str(tenor_range))
         return None
 
     # formatear fecha
@@ -444,9 +466,9 @@ def tenor_graph(producto, tenors, start_date, end_date, period, usd=770, uf=1, c
     usd, uf, duration, l = tools.values_product(producto, usd, uf)
 
     if period == 'WEEKLY':
-        #last_monday = start_date - timedelta(days=start_date.weekday())
-        #coming_monday = start_date + timedelta(days=-start_date.weekday(), weeks=1)
-        #start_date = min([last_monday,coming_monday], key=lambda x: abs(x - start_date))
+        # last_monday = start_date - timedelta(days=start_date.weekday())
+        # coming_monday = start_date + timedelta(days=-start_date.weekday(), weeks=1)
+        # start_date = min([last_monday,coming_monday], key=lambda x: abs(x - start_date))
         start_date = start_date + \
             timedelta(days=-start_date.weekday(), weeks=1)
         end_date = end_date - \
@@ -604,8 +626,15 @@ def bar_by_tenor(producto, start_date, end_date, tenor_range=None, usd=770, uf=1
         else:
             tit = 'Accumulated ' + producto+': '+start_date+' to '+end_date
 
-        fig = go.Figure(
-            [go.Bar(x=df['Tenor'], y=df['DV01'], marker_color=color)])
+        if report:
+            fig = make_subplots(specs=[[{"secondary_y": True}]])
+            fig.add_trace(
+                go.Bar(x=df['Tenor'], y=df['DV01'], marker_color=color, showlegend=False), secondary_y=True)
+            fig.add_trace(
+                go.Bar(x=df['Tenor'], y=df['DV01'], marker_color=color, showlegend=False, text=df['DV01'], textposition='outside', texttemplate='%{text:.2s}', outsidetextfont={'size': 8}), secondary_y=False)
+        else:
+            fig = go.Figure(
+                [go.Bar(x=df['Tenor'], y=df['DV01'], marker_color=color)])
 
         fig.update_layout(barmode='stack',
                           xaxis={'title': 'Tenor'},
@@ -622,23 +651,56 @@ def bar_by_tenor(producto, start_date, end_date, tenor_range=None, usd=770, uf=1
                      'Date': single_date,
                      }
                 df = df.append(pd.Series(t), ignore_index=True)
-        df = df.groupby(['Tenor']).agg({'Volume': 'sum'}).reset_index()
-        df['Volume'] = df['Volume']*l
+
         color = 'crimson'
+        df = df.groupby(['Tenor']).agg({'Volume': 'sum'}).reset_index()
         # sort
-        if (report):
-            df['Volume'] = df['Volume']/5
-            tit = 'NDF USD CLP: Promedio diario de DV01 transado en la última semana'
-        else:
-            tit = 'Accumulated ' + producto+': '+start_date+' to '+end_date
         df = tools.tenor_sort_2(df)
-        fig = go.Figure(
-            [go.Bar(x=df['Tenor'], y=df['Volume'], marker_color=color)])
+        if report:
+            df['Volume'] = df['Volume']*l/5
+
+            w0 = ['0D', '1D', '2D', '3D']
+            w1 = [str(i)+'D' for i in range(4, 9)]
+            w2 = [str(i)+'D' for i in range(9, 17)]
+            w3 = [str(i)+'D' for i in range(17, 28)]
+            w4 = [str(i)+'D' for i in range(28, 38)] + ['1M']
+
+            v1 = sum(df['Volume'][df['Tenor'].isin(w1)])
+            v2 = sum(df['Volume'][df['Tenor'].isin(w2)])
+            v3 = sum(df['Volume'][df['Tenor'].isin(w3)])
+            v4 = sum(df['Volume'][df['Tenor'].isin(w4)])
+
+            v0d = df['Volume'][df['Tenor'] == '0D'].squeeze()
+            v1d = df['Volume'][df['Tenor'] == '1D'].squeeze()
+            v2d = df['Volume'][df['Tenor'] == '2D'].squeeze()
+            v3d = df['Volume'][df['Tenor'] == '3D'].squeeze()
+
+            tenors = w0 + ['1W', '2W', '3W', '1M'] + \
+                list(df['Tenor'][~df['Tenor'].isin(w0+w1+w2+w3+w4)])
+            volumes = [v0d, v1d, v2d, v3d, v1, v2, v3, v4] + \
+                list(df['Volume'][~df['Tenor'].isin(w0+w1+w2+w3+w4)])
+
+            tit = 'NDF USD CLP: Promedio diario de DV01 transado en la última semana'
+
+            fig = make_subplots(specs=[[{"secondary_y": True}]])
+            fig.add_trace(
+                go.Bar(x=tenors, y=volumes, marker_color=color, showlegend=False), secondary_y=True)
+            fig.add_trace(
+                go.Bar(x=tenors, y=volumes, marker_color=color, showlegend=False, text=volumes, textposition='outside', texttemplate='%{text:.2s}', outsidetextfont={'size': 8}), secondary_y=False)
+        else:
+            df['Volume'] = df['Volume']*l
+            tit = 'Accumulated ' + producto+': '+start_date+' to '+end_date
+            fig = go.Figure(
+                [go.Bar(x=df['Tenor'], y=df['Volume'], marker_color=color)])
+
         fig.update_layout(barmode='stack',
                           xaxis={'title': 'Tenor'},
                           yaxis={'title': 'Volume'},
                           title=tit)
 
+    if report:
+        fig.update_layout(xaxis=dict(domain=[0, 0.985]))
+        fig.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
     return fig
 
 
@@ -660,52 +722,56 @@ def ndf_index(fecha):
         return n_index
 
 
-def graph_ndf_index(start_date, end_date, cumulative=False):
+def graph_ndf_index(start_date, end_date, cumulative=False, report=False):
     business_days = pd.date_range(start=start_date, end=end_date, freq='B')
     n_indexes = list()
     for single_date in business_days:
         n_indexes.append(ndf_index(single_date))
-    fig = go.Figure()
+    if report:
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+    else:
+        fig = go.Figure()
     if not cumulative:
-        fig.add_trace(go.Scatter(x=business_days, y=n_indexes,
+        fig.add_trace(go.Scatter(x=business_days, y=n_indexes, marker_color='crimson',
                                  name=' ', showlegend=False))
+        value = sum(n_indexes)/len(n_indexes)
         fig.add_shape(
             # Line Horizontal
             go.layout.Shape(
                 type="line",
                 x0=business_days[0],
-                y0=sum(n_indexes)/len(n_indexes),
+                y0=value,
                 x1=business_days[-1],
-                y1=sum(n_indexes)/len(n_indexes),
+                y1=value,
                 line=dict(
-                    color="darkblue",
+                    color="crimson",
                     width=4,
                     dash="dashdot",
                 ),
             ))
+
+        Name = tools.namer(value)
         fig.add_trace(go.Scatter(x=[business_days[1]],
-                                 y=[sum(n_indexes)/len(n_indexes)],
-                                 name="Mean: " +
-                                 "{0:.1f} B".format(
-                                     sum(n_indexes)/len(n_indexes)/1e9),
+                                 y=[value],
+                                 name=Name,
                                  mode='markers',
-                                 marker=dict(color=["darkblue"]),
+                                 marker=dict(color=["crimson"]),
                                  showlegend=True,))
-        fig.update_layout(title='NDF INDEX Time Series ')
+        if report:
+            fig.update_layout(title='NDF Index por día')
+        else:
+            fig.update_layout(title='NDF INDEX Time Series ')
     else:
         fig.add_trace(go.Scatter(x=business_days, y=pd.Series(
-            n_indexes).cumsum(), name=' ', showlegend=False))
+            n_indexes).cumsum(), name=' ', marker_color='crimson', showlegend=False))
         fig.update_layout(title='Accumulated NDF INDEX Time Series ')
 
-    # Add range slider
-    # fig.update_layout(
-    #    xaxis=go.layout.XAxis(
-    #        rangeslider=dict(
-    #            visible=True
-    #        ),
-    #    )
-    # )
     fig.update_layout(yaxis={'title': 'Volume'})
+
+    if report:
+        fig.add_trace(go.Scatter(x=business_days, y=n_indexes, marker_color='crimson',
+                                 name=' ', showlegend=False), secondary_y=True)
+        fig.update_layout(xaxis=dict(domain=[0, 0.985]))
 
     return fig
 
@@ -739,6 +805,7 @@ def table_ndf_index(start_date, end_date):
         zscore = (index - mean)/sd
         row = {'Date': single_date, 'Index': index, 'Mean': mean, 'Zs': zscore}
         df_indexes = df_indexes.append(row, ignore_index=True)
+
     return df_indexes
 
 
@@ -783,12 +850,61 @@ def tseries_clf_clp(start_date, end_date, usd=770, uf=1):
     df = df.groupby(['Date']).sum().reset_index()
 
     # crear time series
-    fig = go.Figure()
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(go.Scatter(
-        x=df['Date'], y=df['DV01'], name='CLP CAM', showlegend=True, marker_color='royalblue'))
+        x=df['Date'], y=df['DV01'], name='CLP CAM', showlegend=False, marker_color='royalblue'), secondary_y=False)
+    fig.add_trace(go.Scatter(
+        x=df['Date'], y=df['DV01'], name='CLP CAM', showlegend=False, marker_color='royalblue'), secondary_y=True)
 
     fig.add_trace(go.Scatter(
-        x=df_clf['Date'], y=df_clf['DV01'], name='CLF CAM', showlegend=True, marker_color='limegreen'))
+        x=df_clf['Date'], y=df_clf['DV01'], name='CLF CAM', showlegend=False, marker_color='limegreen'), secondary_y=False)
+    fig.add_trace(go.Scatter(
+        x=df_clf['Date'], y=df_clf['DV01'], name='CLF CAM', showlegend=False, marker_color='limegreen'), secondary_y=True)
+
+    clp_mean = df['DV01'].mean()
+    clf_mean = df_clf['DV01'].mean()
+    fig.add_shape(
+        # Line Horizontal
+        go.layout.Shape(
+            type="line",
+            x0=df['Date'][0],
+            y0=clp_mean,
+            x1=end_date,
+            y1=clp_mean,
+            line=dict(
+                color='royalblue',
+                width=2,
+                dash="dashdot",
+            ),
+        ))
+    Name = tools.namer(clp_mean)
+    fig.add_trace(go.Scatter(x=[df['Date'][1]],
+                             y=[clp_mean],
+                             name='CLP '+Name,
+                             mode='markers',
+                             marker=dict(color=['royalblue']),
+                             showlegend=True,), secondary_y=False)
+    fig.add_shape(
+        # Line Horizontal
+        go.layout.Shape(
+            type="line",
+            x0=df_clf['Date'][0],
+            y0=clf_mean,
+            x1=end_date,
+            y1=clf_mean,
+            line=dict(
+                color='limegreen',
+                width=2,
+                dash="dashdot",
+            ),
+        ))
+    Name = tools.namer(clf_mean)
+    fig.add_trace(go.Scatter(x=[df['Date'][1]],
+                             y=[clf_mean],
+                             name='CLF '+Name,
+                             mode='markers',
+                             marker=dict(color=['limegreen']),
+                             showlegend=True,), secondary_y=False)
 
     # formatear fecha
     if start_date.year == end_date.year:
@@ -799,5 +915,7 @@ def tseries_clf_clp(start_date, end_date, usd=770, uf=1):
 
     fig.update_layout(
         yaxis={'title': 'DV01'}, title='DV01 total transado por día en CLPCAM y CLFCAM')
+
+    fig.update_layout(xaxis=dict(domain=[0, 0.985]))
 
     return fig

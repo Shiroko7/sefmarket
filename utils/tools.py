@@ -1458,11 +1458,11 @@ def fill_df(df, start_date, end_date):
 
 def namer(value):
     if value > 1e9:
-        return "Media: " + "{0:.1f} B".format(value/1e9)
+        return "Promedio: " + "{0:.1f} B".format(value/1e9)
     elif value > 1e3:
-        return "Media: " + "{0:.0f} K".format(value/1e3)
+        return "Promedio: " + "{0:.0f} K".format(value/1e3)
     else:
-        return "Media: " + "{0:.0f}".format(value)
+        return "Promedio: " + "{0:.0f}".format(value)
 
 
 def values_product(producto, usd, uf):
