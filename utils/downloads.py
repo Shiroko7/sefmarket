@@ -196,11 +196,11 @@ def daily_upload(bol=True):
     today = today - shift
     if bol:
         daily_download(bol)
-        try:
-            api.pd_to_sql(today)
-            print('Upload terminado')
-        except:
-            print('Error inesperado en función pd_to_sql()')
+        # try:
+        api.pd_to_sql(today)
+        #    print('Upload terminado')
+        # except:
+        #    print('Error inesperado en función pd_to_sql()')
 
 
 def specific_upload(start_date, confirmar):
