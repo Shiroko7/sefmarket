@@ -7,7 +7,7 @@ import requests
 # Descomprimir zip
 import zipfile
 
-import utils.api
+import utils.api as api
 
 
 def get(name, url):
