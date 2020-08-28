@@ -177,11 +177,25 @@ def daily_download(bol=True):
         print('Descarga terminada')
 
 
+def mult_dl(start_date, end_date, confirmar):
+    downloaders = [latam_dl, tradition_dl, gfi_dl, bgc_dl]
+    if not confirmar:
+        return
+    if start_date == None or end_date == None:
+        return
+    day_count = (end_date - start_date).days + 1
+    for single_date in (start_date + timedelta(n) for n in range(day_count)):
+        for downloader in downloaders:
+            downloader(single_date)
+    print("Descarga Completa")
+
+
 def daily_upload(bol=True):
     today = date.today()
     shift = timedelta(max(1, (today.weekday() + 6) % 7 - 3))
     today = today - shift
     if bol:
+        daily_download(bol)
         try:
             api.pd_to_sql(today)
             print('Upload terminado')
@@ -189,12 +203,30 @@ def daily_upload(bol=True):
             print('Error inesperado en función pd_to_sql()')
 
 
-def mult_dl(downloader, start_date, end_date, confirmar):
+def specific_upload(start_date, confirmar):
+    if not confirmar:
+        return
+    if start_date == None:
+        return
+    downloaders = [latam_dl, tradition_dl, gfi_dl, bgc_dl]
+    if confirmar:
+        for downloader in downloaders:
+            downloader(start_date)
+        try:
+            api.pd_to_sql(start_date)
+            print('Upload terminado')
+        except:
+            print('Error inesperado en función pd_to_sql()')
+
+
+def range_upload(start_date, end_date, confirmar):
     if not confirmar:
         return
     if start_date == None or end_date == None:
         return
-    day_count = (end_date - start_date).days + 1
-    for single_date in (start_date + timedelta(n) for n in range(day_count)):
-        downloader(single_date)
-    print("Descarga Completa")
+    mult_dl(start_date, end_date, confirmar)
+    try:
+        api.upload_range(start_date, end_date)
+        print('Upload terminado')
+    except:
+        print('Error inesperado en función pd_to_sql()')
