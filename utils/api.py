@@ -167,7 +167,7 @@ def pd_to_sql(date):
     # IMPORTANTE: CADA UPLOAD DE UN DÍA PRIMERO BOTA LO QUE YA ESTA, PARA NO DUPLICAR DATA
     delete_by_date(date)
 
-    df = tools.resumen_for_BD(date)
+    df = resumen_for_BD(date)
     if df.empty:
         print("No se registraron datos: ", date)
         return None
