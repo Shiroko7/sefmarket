@@ -3,12 +3,17 @@ from datetime import date, timedelta, datetime, time
 from dateutil.relativedelta import relativedelta
 from pandas.tseries.offsets import BDay
 # Descargar de la web
-import urllib.request
-from urllib.request import urlopen
+import requests
 # Descomprimir zip
 import zipfile
 
 import utils.api
+
+
+def get(name, url):
+    r = requests.get(url, allow_redirects=True, headers={
+                     'User-Agent': 'Mozilla/5.0'})
+    open(f'{name}', 'wb').write(r.content)
 
 # LatAmSEF
 
@@ -24,7 +29,7 @@ def latam_dl(fecha):
 
     # actual download
     try:
-        urllib.request.urlretrieve(url, 'assets/'+token)
+        get(url, token)
 
         out = "LatAmSEF {0} descargado con éxito".format(str(fecha))
     except:
@@ -35,7 +40,7 @@ def latam_dl(fecha):
 
             url = "http://latamsef.com/market-data/" + token
 
-            urllib.request.urlretrieve(url, 'assets/'+token)
+            get(url, token)
 
             # descomprimir carpeta principal
             with zipfile.ZipFile('assets/'+token, 'r') as zip_ref:
@@ -48,7 +53,7 @@ def latam_dl(fecha):
                 token = "LatAmSEF_MarketActivityData_{0}.zip".format(fecha_x)
                 url = "http://latamsef.com/market-data/" + token
 
-                urllib.request.urlretrieve(url, 'assets/'+token)
+                get(url, token)
 
                 # descomprimir carpeta principal
                 with zipfile.ZipFile('assets/'+token, 'r') as zip_ref:
@@ -82,7 +87,7 @@ def tradition_dl(fecha):
 
     # actual download
     try:
-        urllib.request.urlretrieve(url, 'assets/'+token)
+        get(url, token)
 
         out = "TraditionSEF {0} descargado con éxito".format(str(fecha))
     except:
@@ -103,7 +108,7 @@ def tullett_dl(fecha):
 
     # actual download
     try:
-        urllib.request.urlretrieve(url, 'assets/'+token)
+        get(url, token)
 
         out = "tullet prebon {0} descargado con éxito".format(str(fecha))
     except:
@@ -124,7 +129,7 @@ def gfi_dl(fecha):
 
     # actual download
     try:
-        urllib.request.urlretrieve(url, 'assets/'+token)
+        get(token, url)
 
         out = "GFI {0} descargado con éxito".format(str(fecha))
 
@@ -147,7 +152,7 @@ def bgc_dl(fecha):
 
     # actual download
     try:
-        urllib.request.urlretrieve(url, 'assets/'+token)
+        get(url, token)
 
         out = "BGC {0} descargado con éxito".format(str(fecha))
 
@@ -182,3 +187,14 @@ def daily_upload(bol=True):
             print('Upload terminado')
         except:
             print('Error inesperado en función pd_to_sql()')
+
+
+def mult_dl(downloader, start_date, end_date, confirmar):
+    if not confirmar:
+        return
+    if start_date == None or end_date == None:
+        return
+    day_count = (end_date - start_date).days + 1
+    for single_date in (start_date + timedelta(n) for n in range(day_count)):
+        downloader(single_date)
+    print("Descarga Completa")
