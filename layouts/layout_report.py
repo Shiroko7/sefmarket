@@ -14,8 +14,17 @@ today = today - shift
 start_date = today-timedelta(days=2*30)
 end_date = today
 
-start_week = date(2020, 8, 17)
-end_week = date(2020, 8, 21)
+
+end_week = today
+business_days = 5
+start_week = end_week
+while business_days > 0:
+    start_week -= datetime.timedelta(days=1)
+    weekday = start_week.weekday()
+    if weekday >= 5:  # sunday = 6
+        continue
+    business_days -= 1
+
 
 usd = 800
 uf = 29000
