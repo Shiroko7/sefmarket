@@ -95,7 +95,7 @@ def resumen_for_BD(fecha=None):
     resumen = resumen[~resumen.Tenor.str.contains("NONE")]
 
     if not resumen.empty:
-        resumen['Volume'] = tools.resumen.apply(
+        resumen['Volume'] = resumen.apply(
             lambda row: product_scale(row), axis=1)
         resumen['Date'] = fecha
 
