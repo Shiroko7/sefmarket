@@ -302,6 +302,10 @@ body {
     flex-direction: column;
 }
 
+.Fuente {
+    color: grey !important;
+}
+
 /* Typography
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 h1,
@@ -688,7 +692,10 @@ there.
         display: block;
         page-break-after: always;
     }
-
+    .Fuente {
+        font-family: sans-serif;
+        color: grey !important;
+    }
     .foot {
         margin-left: 10mm;
         position: fixed;

@@ -627,19 +627,32 @@ def bar_by_tenor(producto, start_date, end_date, tenor_range=None, usd=770, uf=1
             tit = 'Accumulated ' + producto+': '+start_date+' to '+end_date
 
         if report:
-            fig = make_subplots(specs=[[{"secondary_y": True}]])
+            fig = go.Figure()
+            #fig = make_subplots(specs=[[{"secondary_y": True}]])
+
             fig.add_trace(
-                go.Bar(x=df['Tenor'], y=df['DV01'], marker_color=color, showlegend=False), secondary_y=True)
+                go.Bar(x=df['Tenor'], y=df['DV01'], yaxis="y", marker_color=color, showlegend=False))
+
+            fig.add_trace(go.Scatter(x=df['Tenor'],
+                                     y=df['DV01'],
+                                     yaxis="y",
+                                     text=[str(round(i/1e3, 1)) +
+                                           'k' for i in df['DV01']],
+                                     textposition="top center",
+                                     showlegend=False,
+                                     mode="text",
+                                     textfont=dict(size=14,
+                                                   family="HelveticaNeue",)))
             fig.add_trace(
-                go.Bar(x=df['Tenor'], y=df['DV01'], marker_color=color, showlegend=False, text=df['DV01'], textposition='outside', texttemplate='%{text:.2s}', outsidetextfont={'size': 8}), secondary_y=False)
+                go.Scatter(x=df['Tenor'], y=df['DV01'], yaxis="y2", marker_color=color, showlegend=False, mode="text", textposition="top center", text=["" for i in df['DV01']]))
         else:
             fig = go.Figure(
                 [go.Bar(x=df['Tenor'], y=df['DV01'], marker_color=color)])
 
-        fig.update_layout(barmode='stack',
-                          xaxis={'title': 'Tenor'},
-                          yaxis={'title': 'DV01'},
-                          title=tit)
+        fig.update_layout(
+            xaxis={'title': 'Tenor'},
+            yaxis={'title': 'DV01'},
+            title=tit)
 
     else:
         if show_total:
@@ -680,27 +693,72 @@ def bar_by_tenor(producto, start_date, end_date, tenor_range=None, usd=770, uf=1
             volumes = [v0d, v1d, v2d, v3d, v1, v2, v3, v4] + \
                 list(df['Volume'][~df['Tenor'].isin(w0+w1+w2+w3+w4)])
 
-            tit = 'NDF USD CLP: Promedio diario de DV01 transado en la última semana'
+            tit = 'NDF USD CLP: Promedio diario transado en la última semana'
 
             fig = make_subplots(specs=[[{"secondary_y": True}]])
             fig.add_trace(
-                go.Bar(x=tenors, y=volumes, marker_color=color, showlegend=False), secondary_y=True)
+                go.Bar(x=tenors, y=volumes, yaxis="y", marker_color=color, showlegend=False))
+
+            fig.add_trace(go.Scatter(x=tenors,
+                                     y=volumes,
+                                     yaxis="y",
+                                     text=[str(round(
+                                         i/1e9, 1)) + 'B' if i > 1e9 else str(int(i/1e6)) + 'M' for i in volumes],
+                                     textposition="top center",
+                                     showlegend=False,
+                                     mode="text",
+                                     textfont=dict(size=14,
+                                                   family="HelveticaNeue",)))
             fig.add_trace(
-                go.Bar(x=tenors, y=volumes, marker_color=color, showlegend=False, text=volumes, textposition='outside', texttemplate='%{text:.2s}', outsidetextfont={'size': 8}), secondary_y=False)
+                go.Scatter(x=tenors, y=volumes, yaxis="y2", text=["" for i in volumes], mode="text", textposition="top center", marker_color=color, showlegend=False))
         else:
             df['Volume'] = df['Volume']*l
             tit = 'Accumulated ' + producto+': '+start_date+' to '+end_date
             fig = go.Figure(
                 [go.Bar(x=df['Tenor'], y=df['Volume'], marker_color=color)])
 
-        fig.update_layout(barmode='stack',
-                          xaxis={'title': 'Tenor'},
-                          yaxis={'title': 'Volume'},
-                          title=tit)
+        fig.update_layout(
+            xaxis={'title': 'Tenor'},
+            yaxis={'title': 'Volume'},
+            title=tit)
 
     if report:
-        fig.update_layout(xaxis=dict(domain=[0, 0.985]))
-        fig.update_layout(uniformtext_minsize=8, uniformtext_mode='hide')
+        fig.update_layout(barmode='stack', xaxis=dict(domain=[0, 0.985]))
+        # Create axis objects
+        if producto != 'NDF_USD_CLP':
+            tocks, top = tools.ticks_gen(max(df['DV01']))
+        if producto == 'CLF_CAM' or producto == 'BASIS':
+            fig.update_layout(
+                yaxis=dict(
+                    range=[0, top],
+                    tickmode='array',
+                    tickvals=tocks,
+                    ticktext=[str(i/1e3) + 'k' for i in tocks],
+                    rangemode="tozero"
+                ),
+                yaxis2=dict(
+                    range=[0, top],
+                    anchor="x",
+                    overlaying="y",
+                    side="right",
+                    position=0.985,
+                    tickmode='array',
+                    tickvals=tocks,
+                    ticktext=[str(i/1e3) + 'k' for i in tocks],
+                    rangemode="tozero"
+                ),
+            )
+        else:
+            fig.update_layout(
+                yaxis=dict(rangemode="tozero"),
+                yaxis2=dict(
+                    anchor="x",
+                    overlaying="y",
+                    side="right",
+                    position=0.985,
+                    rangemode="tozero"
+                ),
+            )
     return fig
 
 
@@ -758,7 +816,7 @@ def graph_ndf_index(start_date, end_date, cumulative=False, report=False):
                                  marker=dict(color=["crimson"]),
                                  showlegend=True,))
         if report:
-            fig.update_layout(title='NDF Index por día')
+            fig.update_layout(title='NDF Index por día (outright USDCLP 1M)')
         else:
             fig.update_layout(title='NDF INDEX Time Series ')
     else:

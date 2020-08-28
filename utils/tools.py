@@ -1539,3 +1539,14 @@ styles = [
     dict(selector="th", props=th_props),
     dict(selector="td", props=td_props)
 ]
+
+
+def ticks_gen(df_max):
+    mag = int(np.log10(df_max))
+    top = int(round(df_max, -mag))
+
+    _, steps = min([(top % i, i) for i in range(3, 10)], key=lambda x: x[0])
+
+    ticks = [int(top*i/steps) for i in range(steps+1)]
+
+    return ticks, max(df_max+top/(4*steps), top + top/(4*steps))
