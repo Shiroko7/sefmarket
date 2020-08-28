@@ -729,3 +729,93 @@ def close_modal(n_clicks):
         html.P("Puede demorar un par de minutos."),
         html.P("Por favor no cierre mientras se este cargando.")
     ]
+
+
+@app.callback(
+    [Output('Rfig_1', 'figure'),
+     Output('Rfig_2', 'figure'),
+     Output('Rfig_3', 'figure'),
+     Output('Rfig_4', 'figure'),
+     Output('Rfig_5', 'figure'),
+     Output('Rfig_6', 'figure'),
+     Output('Rfig_7', 'figure'),
+     Output('Rfig_8', 'figure'), ],
+    [Input('usd_resumen', 'value'),
+     Input('uf_resumen', 'value')]
+)
+def report(usd, uf):
+    usd = int(usd)
+    uf = int(uf)
+    today = date.today()
+    shift = timedelta(max(1, (today.weekday() + 6) % 7 - 3))
+    today = today - shift
+
+    start_date = today-timedelta(days=2*30)
+    end_date = today
+
+    end_week = today
+    business_days = 5
+    start_week = end_week
+    while business_days > 0:
+        start_week -= timedelta(days=1)
+        weekday = start_week.weekday()
+        if weekday >= 5:  # sunday = 6
+            continue
+        business_days -= 1
+
+    fig = plots.tseries_clf_clp(start_date, end_date, usd, uf)
+
+    fig_clp = plots.bar_by_tenor('CLP_CAM', start_week, end_week,
+                                 None, usd, uf, show_total=False, report=True)
+    fig_clf = plots.bar_by_tenor('CLF_CAM', start_week, end_week,
+                                 None, usd, uf, show_total=False, report=True)
+
+    fig_basis = plots.general_graph('BASIS', ['All'], start_date,
+                                    end_date, 'DAILY', usd, uf, cumulative=False, report=True)
+
+    fig_basis_tenor = plots.bar_by_tenor('BASIS', start_week, end_week,
+                                         None, usd, uf, show_total=False, report=True)
+
+    fig_ndf = plots.general_graph('NDF_USD_CLP', ['All'], start_date,
+                                  end_date, 'DAILY', usd, uf, cumulative=False, report=True)
+
+    fig_ndf_tenor = plots.bar_by_tenor('NDF_USD_CLP', start_week, end_week,
+                                       None, usd, uf, show_total=False, report=True)
+
+    fig_ndf_index = plots.graph_ndf_index(
+        start_date, end_date, cumulative=False, report=True)
+
+    # fig.update_layout(
+    #    autosize=False,
+    #    width=940,
+    #    height=390)
+    # fig_clp.update_layout(
+    #    autosize=False,
+    #    height=390)
+    #    width=940,
+    #    autosize=False,
+    # fig_clf.update_layout(
+    #    height=390)
+    #    width=940,
+    #    autosize=False,
+    # fig_basis.update_layout(
+    #    height=390)
+    #    width=940,
+    #    autosize=False,
+    # fig_basis_tenor.update_layout(
+    #    height=390)
+    #    width=940,
+    #    autosize=False,
+    # fig_ndf.update_layout(
+    #    height=390)
+    #    width=940,
+    #    autosize=False,
+    # fig_ndf_tenor.update_layout(
+    #    height=390)
+    #    width=940,
+    #    autosize=False,
+    # fig_ndf_index.update_layout(
+    #    height=390)
+    #width = 940,
+
+    return fig, fig_clp, fig_clf, fig_basis, fig_basis_tenor, fig_ndf, fig_ndf_tenor, fig_ndf_index

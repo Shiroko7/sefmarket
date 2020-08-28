@@ -68,7 +68,7 @@ dash = html.Div(children=[
             html.Div(
                 [
                     html.H2('SEF Market Data Activity',),
-                    html.H6('Versión 3.0.1', className='no-print'),
+                    html.H6('Versión 3.1.0', className='no-print'),
                 ], className='twelve columns', style={'text-align': 'center'}
             )
         ], id='header', className='row',
@@ -79,6 +79,7 @@ dash = html.Div(children=[
                 [
                     html.Div(
                         [
+                            dcc.Link('Reporte semanal', href='/report'),
                             html.Label(
                                 'Producto', className="control_label"),
                             dcc.Dropdown(

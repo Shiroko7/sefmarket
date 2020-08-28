@@ -321,7 +321,7 @@ def latam_parser_tenor(row):
         elif tenor[-1] == "Y":
             tenor = f_date(0, 0, 0, n)
         return tenor
-    warnings.warn('No se pudo leer TENOR de LatAmSEF '+str(row['Trade_Date']))
+    #warnings.warn('No se pudo leer TENOR de LatAmSEF '+str(row['Trade_Date']))
     return "NONE"
 
 
@@ -337,8 +337,7 @@ def latam_parser_ID(row):
     # CLF CAM
     if (row["Asset_Class"] == "IR") & (row["Traded_Currency"] == "CLF"):
         return "CLF_CAM"
-    warnings.warn('No se pudo leer PRODUCTO de LatAmSEF ' +
-                  str(row['Trade_Date']))
+    #warnings.warn('No se pudo leer PRODUCTO de LatAmSEF ' + str(row['Trade_Date']))
     return "NONE"
 
 
@@ -508,8 +507,8 @@ def tradition_parser_tenor(row):
             elif tenor[-1] == "Y":
                 tenor = f_date(0, 0, 0, n)
             return tenor
-    warnings.warn('No se pudo leer TENOR de TraditionSEF ' +
-                  str(row['Trade_Date']))
+    # warnings.warn('No se pudo leer TENOR de TraditionSEF ' +
+    #              str(row['Trade_Date']))
     return "NONE"
 
 
@@ -531,8 +530,8 @@ def tradition_parser_ID(row):
     # BASIS
     elif (row['Asset_Class'] == 'IR') & (row["Curr_Code"] == 'USD'):
         return "BASIS"
-    warnings.warn('No se pudo leer PRODUCTO de TraditionSEF ' +
-                  str(row['Trade_Date']))
+    # warnings.warn('No se pudo leer PRODUCTO de TraditionSEF ' +
+    #              str(row['Trade_Date']))
     return "NONE"
 
 
@@ -697,8 +696,8 @@ def tullett_parser_tenor(row):
         tenor = reg5.match(token).groups()[1]
         tenor = f_date(0, 0, tenor, 0)
         return tenor
-    warnings.warn('No se pudo leer TENOR de tullett prebon ' +
-                  str(row['Batch Date']))
+    # warnings.warn('No se pudo leer TENOR de tullett prebon ' +
+    #              str(row['Batch Date']))
     return "NONE"
 
 
@@ -732,8 +731,8 @@ def tullett_parser_ID(row):
     # BASIS
     if reg5.match(token) is not None:
         return "BASIS"
-    warnings.warn('No se pudo leer PRODUCTO de tullett prebon ' +
-                  str(row['Batch Date']))
+    # warnings.warn('No se pudo leer PRODUCTO de tullett prebon ' +
+    #              str(row['Batch Date']))
     return "NONE"
 
 
@@ -772,8 +771,8 @@ def tullett_parser_broker(row):
     # BASIS
     if reg5.match(token) is not None:
         return "ICAP"
-    warnings.warn('No se pudo leer BROKER de tullett prebon ' +
-                  str(row['Batch Date']))
+    # warnings.warn('No se pudo leer BROKER de tullett prebon ' +
+    #              str(row['Batch Date']))
     return "NONE"
 
 
@@ -915,7 +914,7 @@ def gfi_parser_tenor(row):
         elif tenor[-1] == "Y":
             tenor = f_date(0, 0, 0, n)
         return tenor
-    warnings.warn('No se pudo leer TENOR de GFI ' + str(row['Date']))
+    #warnings.warn('No se pudo leer TENOR de GFI ' + str(row['Date']))
     return "NONE"
 
 
@@ -934,7 +933,7 @@ def gfi_parser_ID(row):
     # BASIS
     elif (row['Asset Class'] == 'Interest Rate') & (row['Currency'] == 'USD'):
         return "BASIS"
-    warnings.warn('No se pudo leer PRODUCTO de GFI '+str(row['Date']))
+    #warnings.warn('No se pudo leer PRODUCTO de GFI '+str(row['Date']))
     return "NONE"
 
 
@@ -1058,7 +1057,7 @@ def bgc_parser_tenor(row):
         elif tenor[-1] == "Y":
             tenor = f_date(0, 0, 0, n)
         return tenor
-    warnings.warn('No se pudo leer TENOR de BGC ' + str(row['Trade Date']))
+    #warnings.warn('No se pudo leer TENOR de BGC ' + str(row['Trade Date']))
     return "NONE"
 
 
@@ -1075,7 +1074,7 @@ def bgc_parser_ID(row):
     # BASIS
     elif (row['Asset Class'] == 'IR') & (row['CCY'] == 'USD'):
         return "BASIS"
-    warnings.warn('No se pudo leer PRODUCTO de BGC ' + str(row['Trade Date']))
+    #warnings.warn('No se pudo leer PRODUCTO de BGC ' + str(row['Trade Date']))
     return "NONE"
 
 # Reading an excel file using Python
