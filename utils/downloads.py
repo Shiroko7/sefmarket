@@ -29,7 +29,7 @@ def latam_dl(fecha):
 
     # actual download
     try:
-        get(url, token)
+        get(token, url)
 
         out = "LatAmSEF {0} descargado con éxito".format(str(fecha))
     except:
@@ -40,7 +40,7 @@ def latam_dl(fecha):
 
             url = "http://latamsef.com/market-data/" + token
 
-            get(url, token)
+            get(token, url)
 
             # descomprimir carpeta principal
             with zipfile.ZipFile('assets/'+token, 'r') as zip_ref:
@@ -53,7 +53,7 @@ def latam_dl(fecha):
                 token = "LatAmSEF_MarketActivityData_{0}.zip".format(fecha_x)
                 url = "http://latamsef.com/market-data/" + token
 
-                get(url, token)
+                get(token, url)
 
                 # descomprimir carpeta principal
                 with zipfile.ZipFile('assets/'+token, 'r') as zip_ref:
@@ -87,7 +87,7 @@ def tradition_dl(fecha):
 
     # actual download
     try:
-        get(url, token)
+        get(token, url)
 
         out = "TraditionSEF {0} descargado con éxito".format(str(fecha))
     except:
@@ -108,7 +108,7 @@ def tullett_dl(fecha):
 
     # actual download
     try:
-        get(url, token)
+        get(token, url)
 
         out = "tullet prebon {0} descargado con éxito".format(str(fecha))
     except:
@@ -152,7 +152,7 @@ def bgc_dl(fecha):
 
     # actual download
     try:
-        get(url, token)
+        get(token, url)
 
         out = "BGC {0} descargado con éxito".format(str(fecha))
 

@@ -4,3 +4,7 @@ venv
 .env
 app_antigua.py
 test.py
+*.csv
+*.xls
+*.xlsx
+*.aspx
