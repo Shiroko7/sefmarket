@@ -12,6 +12,9 @@ import numpy as np
 from functools import reduce
 import warnings
 
+import xlrd
+import os
+
 # definir today (ayer)
 today = date.today()
 shift = timedelta(max(1, (today.weekday() + 6) % 7 - 3))
