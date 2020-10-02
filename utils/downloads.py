@@ -219,14 +219,14 @@ def specific_upload(start_date, confirmar):
             print('Error inesperado en función pd_to_sql()')
 
 
-def range_upload(start_date, end_date, confirmar):
+def range_upload(start_date, end_date, confirmar, icap=False):
     if not confirmar:
         return
     if start_date == None or end_date == None:
         return
     mult_dl(start_date, end_date, confirmar)
     try:
-        api.upload_range(start_date, end_date)
+        api.upload_range(start_date, end_date, icap)
         print('Upload terminado')
     except:
         print('Error inesperado en función pd_to_sql()')

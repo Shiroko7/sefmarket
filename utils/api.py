@@ -20,7 +20,7 @@ import warnings
 # <>dependencia con psycopg2
 import sqlalchemy as db
 from sqlalchemy import create_engine
-from sqlalchemy import Column, String, DateTime, Integer, Float, Text
+from sqlalchemy import Column, String, DateTime, Integer, Float, Text, and_
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -147,25 +147,42 @@ class BASIS(base):
 # OPERCIONES QUE MODIFICAN LA BD
 
 # delete rows by date
-def delete_by_date(fecha):
+def delete_by_date(fecha, icap=False):
 
-    input_rows = session.query(NDF_USD_CLP).filter(
-        NDF_USD_CLP.Date == fecha).delete()
+    if (icap):
+        input_rows = session.query(NDF_USD_CLP).filter(
+            and_(NDF_USD_CLP.Date == fecha, NDF_USD_CLP.Broker != "ICAP")).delete()
 
-    input_rows = session.query(CLP_CAM).filter(CLP_CAM.Date == fecha).delete()
+        input_rows = session.query(CLP_CAM).filter(
+            and_(CLP_CAM.Date == fecha, CLP_CAM.Broker != "ICAP")).delete()
 
-    input_rows = session.query(CLF_CAM).filter(CLF_CAM.Date == fecha).delete()
+        input_rows = session.query(CLF_CAM).filter(and_(
+            CLF_CAM.Date == fecha, CLF_CAM.Broker != "ICAP")).delete()
 
-    input_rows = session.query(BASIS).filter(BASIS.Date == fecha).delete()
+        input_rows = session.query(BASIS).filter(
+            and_(BASIS.Date == fecha, BASIS.Broker != "ICAP")).delete()
+
+    else:
+
+        input_rows = session.query(NDF_USD_CLP).filter(
+            NDF_USD_CLP.Date == fecha).delete()
+
+        input_rows = session.query(CLP_CAM).filter(
+            CLP_CAM.Date == fecha).delete()
+
+        input_rows = session.query(CLF_CAM).filter(
+            CLF_CAM.Date == fecha).delete()
+
+        input_rows = session.query(BASIS).filter(BASIS.Date == fecha).delete()
 
     session.commit()
 
 # UPLOAD DAILY DATA
 
 
-def pd_to_sql(date):
+def pd_to_sql(date, icap=False):
     # IMPORTANTE: CADA UPLOAD DE UN DÍA PRIMERO BOTA LO QUE YA ESTA, PARA NO DUPLICAR DATA
-    delete_by_date(date)
+    delete_by_date(date, icap)
 
     df = resumen_for_BD(date)
     if df.empty:
@@ -242,14 +259,14 @@ def pd_to_sql(date):
 # UPLOAD DATA BY DATE RANGE
 
 
-def upload_range(start_date, end_date):
+def upload_range(start_date, end_date, icap = False):
     day_count = (end_date - start_date).days + 1
     # para cada fecha en el rango [start_date, start_date + 1 día....]
     business_days = pd.date_range(
         start=start_date, end=end_date, freq='B').date
     for single_date in business_days:
         try:
-            pd_to_sql(single_date)
+            pd_to_sql(single_date, icap)
         except Exception as e:
             print("Error: " + str(single_date) + " | "+str(e))
 
