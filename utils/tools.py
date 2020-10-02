@@ -1,4 +1,5 @@
 # Para parsear strings
+
 import re
 
 # Operaciones con fechas
@@ -12,8 +13,6 @@ import numpy as np
 from functools import reduce
 import warnings
 
-import xlrd
-import os
 
 # definir today (ayer)
 today = date.today()
@@ -169,11 +168,11 @@ def f_date(days, weeks, months, years):
         else:
             tenor = str(years) + 'Y'
             return tenor
-    #Years and months
+    # Years and months
     elif years != 0 and months != 0:
         tenor = str(years * 12 + months) + 'M'
         return tenor
-    #Yeards and days
+    # Yeards and days
     elif years != 0 and days != 0:
         if years == 1:
             tenor = '12M'
@@ -181,7 +180,7 @@ def f_date(days, weeks, months, years):
         else:
             tenor = str(years) + 'Y'
             return tenor
-    #Months and days
+    # Months and days
     elif days != 0 and months != 0:
         # mes más cercano
         if days > delta:
@@ -190,7 +189,7 @@ def f_date(days, weeks, months, years):
         else:
             tenor = str(months) + 'M'
             return tenor
-    #Years, months and days
+    # Years, months and days
     elif days != 0 and months != 0 and years != 0:
         tenor = str(years * 12 + months) + 'M'
     return "NO MATCH"
@@ -324,7 +323,7 @@ def latam_parser_tenor(row):
         elif tenor[-1] == "Y":
             tenor = f_date(0, 0, 0, n)
         return tenor
-    #warnings.warn('No se pudo leer TENOR de LatAmSEF '+str(row['Trade_Date']))
+    # warnings.warn('No se pudo leer TENOR de LatAmSEF '+str(row['Trade_Date']))
     return "NONE"
 
 
@@ -340,7 +339,7 @@ def latam_parser_ID(row):
     # CLF CAM
     if (row["Asset_Class"] == "IR") & (row["Traded_Currency"] == "CLF"):
         return "CLF_CAM"
-    #warnings.warn('No se pudo leer PRODUCTO de LatAmSEF ' + str(row['Trade_Date']))
+    # warnings.warn('No se pudo leer PRODUCTO de LatAmSEF ' + str(row['Trade_Date']))
     return "NONE"
 
 
@@ -407,7 +406,7 @@ def latam_proc(fecha):
     # rename Notional_Traded_Currency
     df = df.rename(columns={'Notional_Traded_Currency': 'Volume'})
     df["Trades"] = 1
-    #df = df.groupby(['Name','Tenor']).agg({'Trades':'sum','Volume':'sum'}).reset_index()
+    # df = df.groupby(['Name','Tenor']).agg({'Trades':'sum','Volume':'sum'}).reset_index()
     return df
 
 
@@ -917,7 +916,7 @@ def gfi_parser_tenor(row):
         elif tenor[-1] == "Y":
             tenor = f_date(0, 0, 0, n)
         return tenor
-    #warnings.warn('No se pudo leer TENOR de GFI ' + str(row['Date']))
+    # warnings.warn('No se pudo leer TENOR de GFI ' + str(row['Date']))
     return "NONE"
 
 
@@ -936,7 +935,7 @@ def gfi_parser_ID(row):
     # BASIS
     elif (row['Asset Class'] == 'Interest Rate') & (row['Currency'] == 'USD'):
         return "BASIS"
-    #warnings.warn('No se pudo leer PRODUCTO de GFI '+str(row['Date']))
+    # warnings.warn('No se pudo leer PRODUCTO de GFI '+str(row['Date']))
     return "NONE"
 
 
@@ -944,12 +943,14 @@ def gfi_parser_ID(row):
 def gfi_proc(fecha):
     token = "assets/{0}_daily_trade_data.xls".format(str(fecha))
     try:
+        import xlrd
+        import os
         # open book
         # EN CASO DE QUE CAMBIE EL HEADER
         # > import os: borrar parámetro logfile para ver errors
         # > import xlrd: buscar por casilla
         wb = xlrd.open_workbook(token, logfile=open(os.devnull, 'w'))
-        #sheet = wb.sheet_by_index(0)
+        # sheet = wb.sheet_by_index(0)
         # buscar pivote (donde comienza la tabla)
         # for i in range(10):
         #    for j in range(10):
@@ -1008,7 +1009,7 @@ def gfi_proc(fecha):
     df = df[cols]
 
     df['Trades'] = 1
-    #df = df.groupby(['Name','Tenor']).agg({'Trades':'sum','Volume':'sum'}).reset_index()
+    # df = df.groupby(['Name','Tenor']).agg({'Trades':'sum','Volume':'sum'}).reset_index()
 
     return df
 
@@ -1060,7 +1061,7 @@ def bgc_parser_tenor(row):
         elif tenor[-1] == "Y":
             tenor = f_date(0, 0, 0, n)
         return tenor
-    #warnings.warn('No se pudo leer TENOR de BGC ' + str(row['Trade Date']))
+    # warnings.warn('No se pudo leer TENOR de BGC ' + str(row['Trade Date']))
     return "NONE"
 
 
@@ -1077,7 +1078,7 @@ def bgc_parser_ID(row):
     # BASIS
     elif (row['Asset Class'] == 'IR') & (row['CCY'] == 'USD'):
         return "BASIS"
-    #warnings.warn('No se pudo leer PRODUCTO de BGC ' + str(row['Trade Date']))
+    # warnings.warn('No se pudo leer PRODUCTO de BGC ' + str(row['Trade Date']))
     return "NONE"
 
 # Reading an excel file using Python
@@ -1087,12 +1088,14 @@ def bgc_proc(fecha):
     fecha_x = "".join(str(fecha).split("-"))
     token = "assets/DailyAct_{0}-001.xls".format(fecha_x)
     try:
+        import xlrd
+        import os
         # open book
         # EN CASO DE QUE CAMBIE EL HEADER
         # > import os: borrar parámetro logfile para ver errors
         # > import xlrd: buscar por casilla
         wb = xlrd.open_workbook(token, logfile=open(os.devnull, 'w'))
-        #sheet = wb.sheet_by_index(0)
+        # sheet = wb.sheet_by_index(0)
         # buscar pivote (donde comienza la tabla)
         # for i in range(10):
         #    for j in range(10):
@@ -1164,7 +1167,7 @@ def bgc_proc(fecha):
     df = df.rename(columns={'Total Volume': 'Volume'})
 
     df['Trades'] = 1
-    #df = df.groupby(['Name','Tenor']).agg({'Trades':'sum','Volume':'sum'}).reset_index()
+    # df = df.groupby(['Name','Tenor']).agg({'Trades':'sum','Volume':'sum'}).reset_index()
     return df
 
 
@@ -1278,8 +1281,8 @@ def resumen(producto, detalle=True, fecha=None):
         l = 1e6
     else:
         l = 1
-    #display = '<font size="5">{0}</font>'.format(producto)
-    #display_html(display, raw=True)
+    # display = '<font size="5">{0}</font>'.format(producto)
+    # display_html(display, raw=True)
 
     # LATAM
     latam_resumen = latam_proc(fecha)
@@ -1324,10 +1327,10 @@ def resumen(producto, detalle=True, fecha=None):
     resumen['Volume'] = resumen['Volume'].apply(lambda x: x/l)
     resumen['Date'] = fecha
     # ordenar columnas
-    #cols = resumen.columns.tolist()
-    #cols.insert(0, cols.pop(-1))
+    # cols = resumen.columns.tolist()
+    # cols.insert(0, cols.pop(-1))
     # ordenar columnas
-    #resumen = resumen[cols]
+    # resumen = resumen[cols]
     return resumen
 
 
@@ -1365,7 +1368,7 @@ def volume_to_dv01(df, usd, uf, duration, l=1):
 
 def mean_value(df):
     df = df.groupby(['Tenor']).mean().reset_index()
-    #df = df.rename(columns = {'Volume':'Mean'})
+    # df = df.rename(columns = {'Volume':'Mean'})
     return df
 
 # SD OF DATAFRAME BY TENOR
