@@ -396,7 +396,7 @@ dash = html.Div(children=[
     ),
     html.Div(
         [
-            html.Div(
+            html.Div([
                       html.Div([html.P('Fuente: CFTC')],
                                className='Fuente'),
                       html.P('Este archivo es confidencial y destinado únicamente para uso interno.', style={'textAlign': 'right', 'fontStyle': 'italic'
